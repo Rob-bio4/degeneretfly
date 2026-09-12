@@ -5,6 +5,7 @@ import { FlyAgent } from './agent';
 import { LIFConnectome } from './connectome';
 const el=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
 const feed=new PolymarketFeed(),agent=new FlyAgent(),network=new LIFConnectome();
+el<HTMLSelectElement>('market').disabled=true;
 let studio:Studio|null=null;
 try{studio=new Studio(el<HTMLCanvasElement>('studio'),el<HTMLCanvasElement>('brain'));}catch{el('anatomy-status').textContent='WebGL unavailable on this device';}
 void studio?.anatomy.load().then(n=>{el('anatomy-status').textContent=`${n.regions} compartments · ${n.neurons} reconstructed neurons`;}).catch(()=>{el('anatomy-status').textContent='Anatomy unavailable · check local data assets';});

@@ -31,11 +31,11 @@ export class FlyAgent {
     this.save();
   }
   act(side:'BUY'|'SELL',q:Quote,market:Market,now=Date.now()):Fill|null{
-    if(q.token!==market.yesTokenId||!q.warm||now<q.timestamp||now-q.timestamp>8000||now-this.lastFill<20000||this.consumedQuote===q.timestamp||!this.storageHealthy)return null;
+    if(q.token!==market.yesTokenId||!q.warm||now<q.timestamp||now-q.timestamp>8000||now-this.lastFill<7000||this.consumedQuote===q.timestamp||!this.storageHealthy)return null;
     const h=this.memory.holdings[q.token];
     // Learned edge must cover a full spread and an extra execution-cost buffer.
-    const buy=this.prediction>q.spread+.002;
-    const sell=!!h&&(this.prediction< -q.spread-.002||q.bid<h.cost*.95||q.bid>h.cost*1.04);
+    const buy=this.prediction>q.spread+.0005;
+    const sell=!!h&&(this.prediction< -q.spread-.0005||q.bid<h.cost*.95||q.bid>h.cost*1.04);
     if((side==='BUY'&&!buy)||(side==='SELL'&&!sell))return null;
     const book=side==='BUY'?q.asks:q.bids;
     const budget=Math.min(this.memory.cash,8);

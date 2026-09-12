@@ -13,7 +13,7 @@ const get=async(url:string)=>{const r=await fetch(url,{signal:AbortSignal.timeou
 export class PolymarketFeed {
   markets:Market[]=[];selectedMarket:Market|null=null;quote:Quote|null=null;tape:Tape[]=[];
   onQuote:((q:Quote)=>void)|null=null;onStatus:((s:string)=>void)|null=null;onTape:(()=>void)|null=null;
-  private socket:WebSocket|null=null;private generation=0;private history:{time:number;price:number}[]=[];private heartbeat=0;private timer=0;
+  private socket:WebSocket|null=null;private generation=0;private history:{time:number;price:number}[]=[];private heartbeat=0;private timer=0;private rotation=0;private selectedIndex=0;
   async start(){
     this.onStatus?.('Connecting to Polymarket');
     try{
@@ -26,8 +26,8 @@ export class PolymarketFeed {
         all.push({id:String(m.id),question:m.question,yesTokenId:ids[i]!,conditionId:m.conditionId,slug:m.slug,liquidity:Number(m.liquidityNum??m.liquidity??0),volume:Number(m.volume24hr??0)});
       }}
       this.markets=[...new Map(all.map(m=>[m.id,m])).values()].sort((a,b)=>(b.volume??0)-(a.volume??0));
-      for(const m of this.markets.slice(0,25)){
-        try{const book=await get('/api/book?token_id='+m.yesTokenId);const b=levels(book.bids,true)[0],a=levels(book.asks)[0];if(b&&a&&a.price>=b.price&&b.price>.03&&a.price<.97){await this.selectMarket(m.id);return;}}catch{/* Inspect next available market. */}
+      for(const [index,m] of this.markets.slice(0,80).entries()){
+          try{const book=await get('/api/book?token_id='+m.yesTokenId);const b=levels(book.bids,true)[0],a=levels(book.asks)[0];if(b&&a&&a.price>=b.price&&b.price>.03&&a.price<.97){this.selectedIndex=index;await this.selectMarket(m.id);return;}}catch{/* Inspect next available market. */}
       }
       this.onStatus?.('Waiting for a tradable order book');
     }catch{this.onStatus?.('Connection interrupted · retrying');}
@@ -36,6 +36,7 @@ export class PolymarketFeed {
   async selectMarket(id:string){
     const m=this.markets.find(x=>x.id===id);if(!m)return;
     const generation=++this.generation;this.socket?.close();clearTimeout(this.timer);clearInterval(this.heartbeat);
+    clearTimeout(this.rotation);
     this.quote=null;this.history=[];this.tape=[];this.selectedMarket=m;this.onStatus?.('Connecting · '+m.question);
     let lastTape=0;
     const refresh=async()=>{
@@ -64,6 +65,12 @@ export class PolymarketFeed {
     }catch{/* Ignore non-data keepalive messages. */}};
     ws.onclose=()=>{if(generation===this.generation)clearInterval(this.heartbeat);};
     ws.onerror=()=>ws.close();
+    this.rotation=window.setTimeout(()=>this.rotate(),90000);
+  }
+  private rotate(){
+    if(this.markets.length<2)return;
+    const next=(this.selectedIndex+1)%this.markets.length;const candidate=this.markets[next];
+    if(candidate){this.selectedIndex=next;void this.selectMarket(candidate.id);}
   }
   private addTape(row:Tape){if(!Number.isFinite(row.price)||!Number.isFinite(row.size)||!Number.isFinite(row.timestamp)||this.tape.some(x=>x.id===row.id))return;this.tape.push(row);this.tape.sort((a,b)=>b.timestamp-a.timestamp);this.onTape?.();}
   private accept(book:{bids:unknown;asks:unknown}){

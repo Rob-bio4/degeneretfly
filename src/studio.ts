@@ -51,7 +51,7 @@ export class Studio {
     this.resize();this.draw(null,[],[],'Connecting to Polymarket');
   }
   private resize(){for(const [canvas,renderer,camera] of [[this.canvas,this.renderer,this.camera],[this.brainCanvas,this.brainRenderer,this.brainCamera]] as const){const w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)continue;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}}
-  render(dt:number){this.clock+=dt;this.controls.update();this.fly.group.position.y=.02+Math.sin(this.clock*1.7)*.012;this.kick=Math.max(0,this.kick-dt*2);this.fly.head.rotation.z=Math.sin(this.clock*.7)*.025+this.kick*.04;this.glow.intensity=this.kick*3;this.anatomy.update(this.clock);this.renderer.render(this.scene,this.camera);this.brainRenderer.render(this.brainScene,this.brainCamera);}
+  render(dt:number){this.clock+=dt;this.controls.update();this.fly.group.position.y=.02+Math.sin(this.clock*1.7)*.012;this.fly.group.rotation.z=Math.sin(this.clock*.55)*.012;this.fly.group.rotation.x=Math.sin(this.clock*.42)*.008;this.kick=Math.max(0,this.kick-dt*2);this.fly.head.rotation.z=Math.sin(this.clock*.7)*.025+this.kick*.04;this.fly.head.rotation.y=Math.sin(this.clock*.9)*.035;this.fly.group.traverse(o=>{if(o.name==='wing')o.rotation.x=Math.sin(this.clock*18)*.055;});this.glow.intensity=this.kick*3;this.anatomy.update(this.clock);this.renderer.render(this.scene,this.camera);this.brainRenderer.render(this.brainScene,this.brainCamera);}
   spike(motor:boolean){this.anatomy.spike(this.clock,motor);if(motor)this.kick=1;}
   home(){this.camera.position.set(6.1,4.5,8.9);this.controls.target.set(0,1.2,0);}
   draw(q:Quote|null,tape:Tape[],fills:Fill[],question:string){

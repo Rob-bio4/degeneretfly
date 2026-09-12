@@ -41,7 +41,7 @@ export function makeFly(){
     add(jewel,[side*.67,1.566,.6],[.075,.007,.10]);
     // Paired translucent, veined wings behind the shoulders.
     const shape=new T.Shape();shape.moveTo(0,0);shape.bezierCurveTo(.16,.34,.58,.38,.57,-.17);shape.bezierCurveTo(.5,-.67,.18,-.85,0,0);
-    const wing=new T.Mesh(new T.ShapeGeometry(shape,24),new T.MeshPhysicalMaterial({color:0xb8d4de,transparent:true,opacity:.33,roughness:.16,metalness:.15,side:T.DoubleSide,depthWrite:false}));
+    const wing=new T.Mesh(new T.ShapeGeometry(shape,24),new T.MeshPhysicalMaterial({color:0xb8d4de,transparent:true,opacity:.33,roughness:.16,metalness:.15,side:T.DoubleSide,depthWrite:false})); wing.name='wing';
     wing.position.set(side*.12,1.96,-.27);wing.scale.x=side;wing.rotation.y=side*.6;wing.rotation.z=side*-.28;fly.add(wing);
     for(let vein=0;vein<5;vein++)tube([[side*.13,1.93,-.28],[side*(.24+vein*.055),1.75,-.35],[side*(.2+vein*.07),1.4+vein*.06,-.37]],.003,new T.MeshBasicMaterial({color:0x81979c,transparent:true,opacity:.5}));
   }

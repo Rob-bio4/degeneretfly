@@ -6,6 +6,9 @@ import { LIFConnectome } from './connectome';
 const el=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
 const feed=new PolymarketFeed(),agent=new FlyAgent(),network=new LIFConnectome();
 el<HTMLSelectElement>('market').disabled=true;
+let voiceEnabled=false,lastVoice=0;
+const voiceButton=document.createElement('button');voiceButton.textContent='Enable fly voice';voiceButton.className='voice-toggle';voiceButton.onclick=()=>{voiceEnabled=!voiceEnabled;voiceButton.textContent=voiceEnabled?'Mute fly voice':'Enable fly voice';if(!voiceEnabled)speechSynthesis.cancel();};el('pause').parentElement?.append(voiceButton);
+function flySays(text:string){if(!voiceEnabled||!('speechSynthesis' in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=1.08;u.pitch=.78;u.volume=.82;speechSynthesis.speak(u);}
 let studio:Studio|null=null;
 try{studio=new Studio(el<HTMLCanvasElement>('studio'),el<HTMLCanvasElement>('brain'));}catch{el('anatomy-status').textContent='WebGL unavailable on this device';}
 void studio?.anatomy.load().then(n=>{el('anatomy-status').textContent=`${n.regions} compartments · ${n.neurons} reconstructed neurons`;}).catch(()=>{el('anatomy-status').textContent='Anatomy unavailable · check local data assets';});
@@ -16,7 +19,7 @@ const chemistry=[['dopamine','Dopamine'],['octopamine','Octopamine'],['serotonin
 for(const [key,name] of chemistry){const row=document.createElement('div');row.className='bio';const label=document.createElement('span');label.textContent=name;const track=document.createElement('div'),bar=document.createElement('i');bar.id='bar-'+key;track.append(bar);const value=document.createElement('b');value.id='bio-'+key;value.textContent='—';row.append(label,track,value);el('biology').append(row);}
 function draw(){studio?.draw(feed.quote,feed.tape,agent.memory.fills,feed.selectedMarket?.question??'Connecting to Polymarket');}
 feed.onStatus=status=>{el('connection').textContent=status;if(feed.selectedMarket?.id!==marketId){marketId=feed.selectedMarket?.id??'';const select=el<HTMLSelectElement>('market');select.replaceChildren(...feed.markets.map(m=>{const o=new Option(m.question,m.id);o.selected=m.id===marketId;return o;}));network.reset();page=0;history();}};
-feed.onQuote=q=>{network.setSensoryFrame(q);agent.observe(q);el('bid').textContent=(q.bid*100).toFixed(2)+'¢';el('ask').textContent=(q.ask*100).toFixed(2)+'¢';el('velocity').textContent=q.warm?(q.velocity1m*100).toFixed(2)+'%':'Collecting 60s';};
+feed.onQuote=q=>{network.setSensoryFrame(q);agent.observe(q);el('bid').textContent=(q.bid*100).toFixed(2)+'¢';el('ask').textContent=(q.ask*100).toFixed(2)+'¢';el('velocity').textContent=q.warm?(q.velocity1m*100).toFixed(2)+'%':'Collecting 60s';if(q.warm&&Date.now()-lastVoice>18000){lastVoice=Date.now();const mood=agent.octopamine>.6?'volatility is spicy':'order flow looks interesting';flySays(`Yo chat, ${mood}. Bid ${(q.bid*100).toFixed(0)} cents, ask ${(q.ask*100).toFixed(0)}. I am watching the tape.`);}};
 feed.onTape=()=>{el('tape-count').textContent=String(feed.tape.length);if(tab==='tape')history();};
 function history(){
   const rows=tab==='ledger'?[...agent.memory.fills].reverse():feed.tape;
@@ -45,7 +48,7 @@ function animate(now:number){
   const dt=Math.min(now-last,50);last=now;const q=feed.quote,fresh=q&&Date.now()-q.timestamp<8000;
   if(fresh&&!paused){accumulator+=dt;while(accumulator>=8.333){for(const spike of network.step(8.333)){
     spikes.push(now);el('region').textContent=spike.neuropil;const motor=spike.neuropil==='DN';studio?.spike(motor);
-    if(motor&&feed.selectedMarket){const fill=agent.act(spike.neuronId==='DNp01'?'BUY':'SELL',q,feed.selectedMarket);if(fill)history();}
+    if(motor&&feed.selectedMarket){const fill=agent.act(spike.neuronId==='DNp01'?'BUY':'SELL',q,feed.selectedMarket);if(fill){history();flySays(`${fill.side==='BUY'?'Aped in':'Took profit'} ${fill.quantity.toFixed(1)} shares at ${(fill.price*100).toFixed(0)} cents. The neurons called it.`);}}
   }accumulator-=8.333;}}else{accumulator=0;}
   studio?.render(dt/1000);
   if(now-lastUi>400){lastUi=now;spikes=spikes.filter(t=>now-t<1000);el('hz').textContent=String(spikes.length);el('voltage').textContent=network.getVoltage('MBON-02').toFixed(1)+' mV';

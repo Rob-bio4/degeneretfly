@@ -24,6 +24,11 @@ export class Studio {
     box(40,.1,40,new T.MeshStandardMaterial({color:0x1c2026,roughness:.94}),0,-.12,0);
     box(4.2,.14,1.85,wood,.25,1.29,-.3);
     for(const x of [-1.65,2.15])for(const z of [-1.02,.42])box(.07,1.26,.07,metal,x,.58,z);
+    // Padded operator chair: seat, back, arm rests and a five-star base.
+    const chair=new T.MeshStandardMaterial({color:0x242a35,roughness:.48,metalness:.25});
+    box(.92,.16,.82,chair,-.92,.92,.55);box(.82,1.05,.16,chair,-.92,1.43,.86);
+    for(const side of [-1,1]){box(.08,.36,.08,metal,-.92+side*.46,1.13,.55);box(.38,.07,.08,chair,-.92+side*.27,1.32,.55);}
+    box(.10,.78,.10,metal,-.92,.45,.55);for(let i=0;i<5;i++){const a=i*Math.PI*2/5;box(.06,.06,.48,metal,-.92+Math.sin(a)*.22,.08,.55+Math.cos(a)*.22);}
     // A monitor with a real, continuously refreshed data texture.
     box(2.40,1.48,.10,metal,.83,2.25,-.67);box(.12,.42,.10,metal,.83,1.57,-.69);box(.70,.055,.35,metal,.83,1.39,-.66);
     const offscreen=document.createElement('canvas');offscreen.width=1280;offscreen.height=768;this.ctx=offscreen.getContext('2d')!;

@@ -3,12 +3,13 @@ import { Studio } from './studio';
 import { PolymarketFeed } from './live-market';
 import { FlyAgent } from './agent';
 import { LIFConnectome } from './connectome';
+import { FlyVoice } from './voice';
 const el=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
 const feed=new PolymarketFeed(),agent=new FlyAgent(),network=new LIFConnectome();
 el<HTMLSelectElement>('market').disabled=true;
-let voiceEnabled=false,lastVoice=0;
-const voiceButton=document.createElement('button');voiceButton.textContent='Enable fly voice';voiceButton.className='voice-toggle';voiceButton.onclick=()=>{voiceEnabled=!voiceEnabled;voiceButton.textContent=voiceEnabled?'Mute fly voice':'Enable fly voice';if(!voiceEnabled)speechSynthesis.cancel();};el('pause').parentElement?.append(voiceButton);
-function flySays(text:string){if(!voiceEnabled||!('speechSynthesis' in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=1.08;u.pitch=.78;u.volume=.82;speechSynthesis.speak(u);}
+const voice=new FlyVoice();let voiceEnabled=false,lastVoice=0,lastLessonVoice=0;
+const voiceButton=document.createElement('button');voiceButton.textContent='Enable Kokoro voice';voiceButton.className='voice-toggle';voiceButton.onclick=()=>{voiceEnabled=!voiceEnabled;voiceButton.textContent=voiceEnabled?'Mute Adam voice':'Enable Kokoro voice';if(voiceEnabled)void voice.enable();else voice.mute();};el('pause').parentElement?.append(voiceButton);
+function flySays(text:string){if(voiceEnabled)voice.say(text);}
 let studio:Studio|null=null;
 try{studio=new Studio(el<HTMLCanvasElement>('studio'),el<HTMLCanvasElement>('brain'));}catch{el('anatomy-status').textContent='WebGL unavailable on this device';}
 void studio?.anatomy.load().then(n=>{el('anatomy-status').textContent=`${n.regions} compartments · ${n.neurons} reconstructed neurons`;}).catch(()=>{el('anatomy-status').textContent='Anatomy unavailable · check local data assets';});
@@ -55,7 +56,7 @@ function animate(now:number){
     el('signal-dot').classList.toggle('live',!!fresh);el('age').textContent=q?((Date.now()-q.timestamp)/1000).toFixed(1)+'s':'—';
     if(q&&!fresh)el('connection').textContent='Feed stale · waiting';el('fly-state').textContent=paused?'Taking a breather':!fresh?'Waiting for market input':agent.state;
     for(const [key] of chemistry){el('bar-'+key).style.width=(fresh?agent[key]*100:0)+'%';el('bio-'+key).textContent=fresh?String(Math.round(agent[key]*100)):'—';}
-    el('equity').textContent=money(agent.equity);const pnl=agent.equity-100;el('pnl').textContent=money(pnl);el('pnl').className=pnl>=0?'positive':'negative';el('cash').textContent=money(agent.memory.cash);el('positions').textContent=String(Object.keys(agent.memory.holdings).length);el('wins').textContent=agent.wins===null?'—':Math.round(agent.wins*100)+'%';el('lessons').textContent=String(agent.memory.lessons);
+    el('equity').textContent=money(agent.equity);const pnl=agent.equity-100;el('pnl').textContent=money(pnl);el('pnl').className=pnl>=0?'positive':'negative';el('cash').textContent=money(agent.memory.cash);el('positions').textContent=String(Object.keys(agent.memory.holdings).length);el('wins').textContent=agent.wins===null?'—':Math.round(agent.wins*100)+'%';el('lessons').textContent=String(agent.memory.lessons);if(agent.memory.lessons>lastLessonVoice){lastLessonVoice=agent.memory.lessons;flySays(`Lesson ${agent.memory.lessons} locked in. Error ${agent.memory.error.toFixed(3)}. Dopamine ${Math.round(agent.dopamine*100)} percent. We keep learning.`);}
   }
   if(now-lastDraw>1000){draw();lastDraw=now;}
   requestAnimationFrame(animate);

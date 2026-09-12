@@ -1,0 +1,28 @@
+{
+  "name": "degeneretfly",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A live bio-cybernetic fruit fly driven by a Male CNS v1.0-inspired LIF sub-circuit and Polymarket telemetry.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node server.mjs --dev",
+    "start": "node server.mjs",
+    "build": "tsc --noEmit && vite build",
+    "preview": "node server.mjs",
+    "test": "vitest run",
+    "check": "npm run test && npm run build"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.180.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.4",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

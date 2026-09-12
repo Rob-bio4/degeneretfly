@@ -1,0 +1,850 @@
+{
+  "dataset": "MaleCNS v1.0",
+  "source": "https://male-cns.janelia.org/download/",
+  "license": "CC-BY-4.0",
+  "units": "Meshes: nm. SWC: 8 nm voxels.",
+  "regions": [
+    {
+      "id": "1",
+      "label": "AL(L)",
+      "fragments": [
+        "roi-1-0.bin"
+      ]
+    },
+    {
+      "id": "2",
+      "label": "AL(R)",
+      "fragments": [
+        "roi-2-0.bin"
+      ]
+    },
+    {
+      "id": "3",
+      "label": "AME(L)",
+      "fragments": [
+        "roi-3-0.bin"
+      ]
+    },
+    {
+      "id": "4",
+      "label": "AME(R)",
+      "fragments": [
+        "roi-4-0.bin"
+      ]
+    },
+    {
+      "id": "5",
+      "label": "AMMC(L)",
+      "fragments": [
+        "roi-5-0.bin"
+      ]
+    },
+    {
+      "id": "6",
+      "label": "AMMC(R)",
+      "fragments": [
+        "roi-6-0.bin"
+      ]
+    },
+    {
+      "id": "7",
+      "label": "AOTU(L)",
+      "fragments": [
+        "roi-7-0.bin"
+      ]
+    },
+    {
+      "id": "8",
+      "label": "AOTU(R)",
+      "fragments": [
+        "roi-8-0.bin"
+      ]
+    },
+    {
+      "id": "9",
+      "label": "ATL(L)",
+      "fragments": [
+        "roi-9-0.bin"
+      ]
+    },
+    {
+      "id": "10",
+      "label": "ATL(R)",
+      "fragments": [
+        "roi-10-0.bin"
+      ]
+    },
+    {
+      "id": "11",
+      "label": "AVLP(L)",
+      "fragments": [
+        "roi-11-0.bin"
+      ]
+    },
+    {
+      "id": "12",
+      "label": "AVLP(R)",
+      "fragments": [
+        "roi-12-0.bin"
+      ]
+    },
+    {
+      "id": "13",
+      "label": "BU(L)",
+      "fragments": [
+        "roi-13-0.bin"
+      ]
+    },
+    {
+      "id": "14",
+      "label": "BU(R)",
+      "fragments": [
+        "roi-14-0.bin"
+      ]
+    },
+    {
+      "id": "15",
+      "label": "CA(L)",
+      "fragments": [
+        "roi-15-0.bin"
+      ]
+    },
+    {
+      "id": "16",
+      "label": "CA(R)",
+      "fragments": [
+        "roi-16-0.bin"
+      ]
+    },
+    {
+      "id": "17",
+      "label": "CAN(L)",
+      "fragments": [
+        "roi-17-0.bin"
+      ]
+    },
+    {
+      "id": "18",
+      "label": "CAN(R)",
+      "fragments": [
+        "roi-18-0.bin"
+      ]
+    },
+    {
+      "id": "19",
+      "label": "CRE(L)",
+      "fragments": [
+        "roi-19-0.bin"
+      ]
+    },
+    {
+      "id": "20",
+      "label": "CRE(R)",
+      "fragments": [
+        "roi-20-0.bin"
+      ]
+    },
+    {
+      "id": "21",
+      "label": "EB",
+      "fragments": [
+        "roi-21-0.bin"
+      ]
+    },
+    {
+      "id": "22",
+      "label": "EPA(L)",
+      "fragments": [
+        "roi-22-0.bin"
+      ]
+    },
+    {
+      "id": "23",
+      "label": "EPA(R)",
+      "fragments": [
+        "roi-23-0.bin"
+      ]
+    },
+    {
+      "id": "24",
+      "label": "FB",
+      "fragments": [
+        "roi-24-0.bin"
+      ]
+    },
+    {
+      "id": "25",
+      "label": "FLA(L)",
+      "fragments": [
+        "roi-25-0.bin"
+      ]
+    },
+    {
+      "id": "26",
+      "label": "FLA(R)",
+      "fragments": [
+        "roi-26-0.bin"
+      ]
+    },
+    {
+      "id": "27",
+      "label": "GA(L)",
+      "fragments": [
+        "roi-27-0.bin"
+      ]
+    },
+    {
+      "id": "28",
+      "label": "GA(R)",
+      "fragments": [
+        "roi-28-0.bin"
+      ]
+    },
+    {
+      "id": "29",
+      "label": "GNG",
+      "fragments": [
+        "roi-29-0.bin"
+      ]
+    },
+    {
+      "id": "30",
+      "label": "GOR(L)",
+      "fragments": [
+        "roi-30-0.bin"
+      ]
+    },
+    {
+      "id": "31",
+      "label": "GOR(R)",
+      "fragments": [
+        "roi-31-0.bin"
+      ]
+    },
+    {
+      "id": "32",
+      "label": "IB",
+      "fragments": [
+        "roi-32-0.bin"
+      ]
+    },
+    {
+      "id": "33",
+      "label": "ICL(L)",
+      "fragments": [
+        "roi-33-0.bin"
+      ]
+    },
+    {
+      "id": "34",
+      "label": "ICL(R)",
+      "fragments": [
+        "roi-34-0.bin"
+      ]
+    },
+    {
+      "id": "35",
+      "label": "IPS(L)",
+      "fragments": [
+        "roi-35-0.bin"
+      ]
+    },
+    {
+      "id": "36",
+      "label": "IPS(R)",
+      "fragments": [
+        "roi-36-0.bin"
+      ]
+    },
+    {
+      "id": "37",
+      "label": "LA(L)",
+      "fragments": [
+        "roi-37-0.bin"
+      ]
+    },
+    {
+      "id": "38",
+      "label": "LA(R)",
+      "fragments": [
+        "roi-38-0.bin"
+      ]
+    },
+    {
+      "id": "39",
+      "label": "LAL(L)",
+      "fragments": [
+        "roi-39-0.bin"
+      ]
+    },
+    {
+      "id": "40",
+      "label": "LAL(R)",
+      "fragments": [
+        "roi-40-0.bin"
+      ]
+    },
+    {
+      "id": "41",
+      "label": "LH(L)",
+      "fragments": [
+        "roi-41-0.bin"
+      ]
+    },
+    {
+      "id": "42",
+      "label": "LH(R)",
+      "fragments": [
+        "roi-42-0.bin"
+      ]
+    },
+    {
+      "id": "43",
+      "label": "LO(L)",
+      "fragments": [
+        "roi-43-0.bin"
+      ]
+    },
+    {
+      "id": "44",
+      "label": "LO(R)",
+      "fragments": [
+        "roi-44-0.bin"
+      ]
+    },
+    {
+      "id": "45",
+      "label": "LOP(L)",
+      "fragments": [
+        "roi-45-0.bin"
+      ]
+    },
+    {
+      "id": "46",
+      "label": "LOP(R)",
+      "fragments": [
+        "roi-46-0.bin"
+      ]
+    },
+    {
+      "id": "47",
+      "label": "ME(L)",
+      "fragments": [
+        "roi-47-0.bin"
+      ]
+    },
+    {
+      "id": "48",
+      "label": "ME(R)",
+      "fragments": [
+        "roi-48-0.bin"
+      ]
+    },
+    {
+      "id": "49",
+      "label": "NO",
+      "fragments": [
+        "roi-49-0.bin"
+      ]
+    },
+    {
+      "id": "50",
+      "label": "PB",
+      "fragments": [
+        "roi-50-0.bin"
+      ]
+    },
+    {
+      "id": "51",
+      "label": "PED(L)",
+      "fragments": [
+        "roi-51-0.bin"
+      ]
+    },
+    {
+      "id": "52",
+      "label": "PED(R)",
+      "fragments": [
+        "roi-52-0.bin"
+      ]
+    },
+    {
+      "id": "53",
+      "label": "PLP(L)",
+      "fragments": [
+        "roi-53-0.bin"
+      ]
+    },
+    {
+      "id": "54",
+      "label": "PLP(R)",
+      "fragments": [
+        "roi-54-0.bin"
+      ]
+    },
+    {
+      "id": "55",
+      "label": "PRW",
+      "fragments": [
+        "roi-55-0.bin"
+      ]
+    },
+    {
+      "id": "56",
+      "label": "PVLP(L)",
+      "fragments": [
+        "roi-56-0.bin"
+      ]
+    },
+    {
+      "id": "57",
+      "label": "PVLP(R)",
+      "fragments": [
+        "roi-57-0.bin"
+      ]
+    },
+    {
+      "id": "58",
+      "label": "ROB(L)",
+      "fragments": [
+        "roi-58-0.bin"
+      ]
+    },
+    {
+      "id": "59",
+      "label": "ROB(R)",
+      "fragments": [
+        "roi-59-0.bin"
+      ]
+    },
+    {
+      "id": "60",
+      "label": "RUB(L)",
+      "fragments": [
+        "roi-60-0.bin"
+      ]
+    },
+    {
+      "id": "61",
+      "label": "RUB(R)",
+      "fragments": [
+        "roi-61-0.bin"
+      ]
+    },
+    {
+      "id": "62",
+      "label": "SAD",
+      "fragments": [
+        "roi-62-0.bin"
+      ]
+    },
+    {
+      "id": "63",
+      "label": "SCL(L)",
+      "fragments": [
+        "roi-63-0.bin"
+      ]
+    },
+    {
+      "id": "64",
+      "label": "SCL(R)",
+      "fragments": [
+        "roi-64-0.bin"
+      ]
+    },
+    {
+      "id": "65",
+      "label": "SIP(L)",
+      "fragments": [
+        "roi-65-0.bin"
+      ]
+    },
+    {
+      "id": "66",
+      "label": "SIP(R)",
+      "fragments": [
+        "roi-66-0.bin"
+      ]
+    },
+    {
+      "id": "67",
+      "label": "SLP(L)",
+      "fragments": [
+        "roi-67-0.bin"
+      ]
+    },
+    {
+      "id": "68",
+      "label": "SLP(R)",
+      "fragments": [
+        "roi-68-0.bin"
+      ]
+    },
+    {
+      "id": "69",
+      "label": "SMP(L)",
+      "fragments": [
+        "roi-69-0.bin"
+      ]
+    },
+    {
+      "id": "70",
+      "label": "SMP(R)",
+      "fragments": [
+        "roi-70-0.bin"
+      ]
+    },
+    {
+      "id": "71",
+      "label": "SPS(L)",
+      "fragments": [
+        "roi-71-0.bin"
+      ]
+    },
+    {
+      "id": "72",
+      "label": "SPS(R)",
+      "fragments": [
+        "roi-72-0.bin"
+      ]
+    },
+    {
+      "id": "73",
+      "label": "VES(L)",
+      "fragments": [
+        "roi-73-0.bin"
+      ]
+    },
+    {
+      "id": "74",
+      "label": "VES(R)",
+      "fragments": [
+        "roi-74-0.bin"
+      ]
+    },
+    {
+      "id": "75",
+      "label": "WED(L)",
+      "fragments": [
+        "roi-75-0.bin"
+      ]
+    },
+    {
+      "id": "76",
+      "label": "WED(R)",
+      "fragments": [
+        "roi-76-0.bin"
+      ]
+    },
+    {
+      "id": "77",
+      "label": "a'L(L)",
+      "fragments": [
+        "roi-77-0.bin"
+      ]
+    },
+    {
+      "id": "78",
+      "label": "a'L(R)",
+      "fragments": [
+        "roi-78-0.bin"
+      ]
+    },
+    {
+      "id": "79",
+      "label": "aL(L)",
+      "fragments": [
+        "roi-79-0.bin"
+      ]
+    },
+    {
+      "id": "80",
+      "label": "aL(R)",
+      "fragments": [
+        "roi-80-0.bin"
+      ]
+    },
+    {
+      "id": "81",
+      "label": "b'L(L)",
+      "fragments": [
+        "roi-81-0.bin"
+      ]
+    },
+    {
+      "id": "82",
+      "label": "b'L(R)",
+      "fragments": [
+        "roi-82-0.bin"
+      ]
+    },
+    {
+      "id": "83",
+      "label": "bL(L)",
+      "fragments": [
+        "roi-83-0.bin"
+      ]
+    },
+    {
+      "id": "84",
+      "label": "bL(R)",
+      "fragments": [
+        "roi-84-0.bin"
+      ]
+    },
+    {
+      "id": "85",
+      "label": "gL(L)",
+      "fragments": [
+        "roi-85-0.bin"
+      ]
+    },
+    {
+      "id": "86",
+      "label": "gL(R)",
+      "fragments": [
+        "roi-86-0.bin"
+      ]
+    },
+    {
+      "id": "93",
+      "label": "AB(R)",
+      "fragments": [
+        "roi-93-0.bin"
+      ]
+    },
+    {
+      "id": "94",
+      "label": "AB(L)",
+      "fragments": [
+        "roi-94-0.bin"
+      ]
+    },
+    {
+      "id": "95",
+      "label": "CV-anterior",
+      "fragments": [
+        "roi-95-0.bin"
+      ]
+    },
+    {
+      "id": "96",
+      "label": "CRN",
+      "fragments": [
+        "roi-96-0.bin"
+      ]
+    }
+  ],
+  "skeletons": [
+    {
+      "id": "12781",
+      "file": "12781.swc",
+      "label": "DNge104_R"
+    },
+    {
+      "id": "556329",
+      "file": "556329.swc",
+      "label": "DNge104_L"
+    },
+    {
+      "id": "100000",
+      "file": "100000.swc",
+      "label": "Body 100000"
+    },
+    {
+      "id": "100023",
+      "file": "100023.swc",
+      "label": "Body 100023"
+    },
+    {
+      "id": "1000446509",
+      "file": "1000446509.swc",
+      "label": "Body 1000446509"
+    },
+    {
+      "id": "100065",
+      "file": "100065.swc",
+      "label": "Body 100065"
+    },
+    {
+      "id": "100096",
+      "file": "100096.swc",
+      "label": "Body 100096"
+    },
+    {
+      "id": "100116",
+      "file": "100116.swc",
+      "label": "Body 100116"
+    },
+    {
+      "id": "100137",
+      "file": "100137.swc",
+      "label": "Body 100137"
+    },
+    {
+      "id": "100160",
+      "file": "100160.swc",
+      "label": "Body 100160"
+    },
+    {
+      "id": "1001826968",
+      "file": "1001826968.swc",
+      "label": "Body 1001826968"
+    },
+    {
+      "id": "100204",
+      "file": "100204.swc",
+      "label": "Body 100204"
+    },
+    {
+      "id": "100228",
+      "file": "100228.swc",
+      "label": "Body 100228"
+    },
+    {
+      "id": "100248",
+      "file": "100248.swc",
+      "label": "Body 100248"
+    },
+    {
+      "id": "100272",
+      "file": "100272.swc",
+      "label": "Body 100272"
+    },
+    {
+      "id": "100296",
+      "file": "100296.swc",
+      "label": "Body 100296"
+    },
+    {
+      "id": "100316",
+      "file": "100316.swc",
+      "label": "Body 100316"
+    },
+    {
+      "id": "100337",
+      "file": "100337.swc",
+      "label": "Body 100337"
+    },
+    {
+      "id": "100357",
+      "file": "100357.swc",
+      "label": "Body 100357"
+    },
+    {
+      "id": "100380",
+      "file": "100380.swc",
+      "label": "Body 100380"
+    },
+    {
+      "id": "100401",
+      "file": "100401.swc",
+      "label": "Body 100401"
+    },
+    {
+      "id": "10042",
+      "file": "10042.swc",
+      "label": "Body 10042"
+    },
+    {
+      "id": "1004417640",
+      "file": "1004417640.swc",
+      "label": "Body 1004417640"
+    },
+    {
+      "id": "100462",
+      "file": "100462.swc",
+      "label": "Body 100462"
+    },
+    {
+      "id": "100482",
+      "file": "100482.swc",
+      "label": "Body 100482"
+    },
+    {
+      "id": "100496",
+      "file": "100496.swc",
+      "label": "Body 100496"
+    },
+    {
+      "id": "100515",
+      "file": "100515.swc",
+      "label": "Body 100515"
+    },
+    {
+      "id": "100536",
+      "file": "100536.swc",
+      "label": "Body 100536"
+    },
+    {
+      "id": "100562",
+      "file": "100562.swc",
+      "label": "Body 100562"
+    },
+    {
+      "id": "100580",
+      "file": "100580.swc",
+      "label": "Body 100580"
+    },
+    {
+      "id": "1005951057",
+      "file": "1005951057.swc",
+      "label": "Body 1005951057"
+    },
+    {
+      "id": "100618",
+      "file": "100618.swc",
+      "label": "Body 100618"
+    },
+    {
+      "id": "100640",
+      "file": "100640.swc",
+      "label": "Body 100640"
+    },
+    {
+      "id": "100664",
+      "file": "100664.swc",
+      "label": "Body 100664"
+    },
+    {
+      "id": "100688",
+      "file": "100688.swc",
+      "label": "Body 100688"
+    },
+    {
+      "id": "100710",
+      "file": "100710.swc",
+      "label": "Body 100710"
+    },
+    {
+      "id": "100734",
+      "file": "100734.swc",
+      "label": "Body 100734"
+    },
+    {
+      "id": "10076",
+      "file": "10076.swc",
+      "label": "Body 10076"
+    },
+    {
+      "id": "100781",
+      "file": "100781.swc",
+      "label": "Body 100781"
+    },
+    {
+      "id": "1008047294",
+      "file": "1008047294.swc",
+      "label": "Body 1008047294"
+    },
+    {
+      "id": "100829",
+      "file": "100829.swc",
+      "label": "Body 100829"
+    },
+    {
+      "id": "100850",
+      "file": "100850.swc",
+      "label": "Body 100850"
+    }
+  ]
+}

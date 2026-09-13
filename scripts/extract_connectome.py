@@ -97,10 +97,14 @@ def main():
     if not token:
         parser.error('Set NEUPRINT_TOKEN locally from your neuPrint account; do not paste it into chat.')
     from neuprint import Client, NeuronCriteria, SynapseCriteria, fetch_neurons, fetch_simple_connections, fetch_synapse_connections
+    print('Connecting to official neuPrint dataset...', flush=True)
     client = Client(SERVER, dataset=DATASET, token=token)
+    print('Reading dataset metadata...', flush=True)
     meta = clean(client.fetch_meta())
     criteria = NeuronCriteria(bodyId=[int(i) for i in ids], client=client)
+    print('Reading selected neuron annotations...', flush=True)
     neurons = fetch_neurons(criteria, omit_rois=True, returned_columns='all', client=client)
+    print('Reading aggregate connections...', flush=True)
     aggregates = fetch_simple_connections(criteria, criteria, min_weight=1, client=client)
     nt_keys = client.fetch_synapse_nt_keys()
     nt_columns = [key.replace('nt', '').replace('Prob', '').lower() for key in nt_keys]
@@ -148,5 +152,6 @@ if __name__ == '__main__':
         sys.exit(1)
     except Exception as error:
         # Do not echo authenticated request objects, headers or credentials.
-        print(f'Extraction failed ({type(error).__name__}). No replacement graph published. Check access, dataset and query compatibility.', file=sys.stderr)
+        status = getattr(getattr(error, 'response', None), 'status_code', None)
+        print(f'Extraction failed ({type(error).__name__}, HTTP status {status}). No replacement graph published. Check access, dataset and query compatibility.', file=sys.stderr)
         sys.exit(1)

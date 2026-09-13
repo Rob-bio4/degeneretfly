@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { makeFly,type Mood } from './character';
+import { makeFly,type Mood,type Gesture } from './character';
 import { Anatomy } from './anatomy';
 import type { Quote,Tape } from './live-market';
 import type { Fill } from './agent';
@@ -9,6 +9,7 @@ export class Studio {
   private controls:OrbitControls;private fly=makeFly();private screen:T.CanvasTexture;private ctx:CanvasRenderingContext2D;
   private brainRenderer:T.WebGLRenderer;private brainScene=new T.Scene();private brainCamera=new T.PerspectiveCamera(34,1,.01,50);
   anatomy=new Anatomy();private clock=0;private glow=new T.PointLight(0xb8a1ff,0,4);private kick=0;
+  react(gesture:Gesture){this.fly.react(gesture);}
   constructor(private canvas:HTMLCanvasElement,private brainCanvas:HTMLCanvasElement){
     this.renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:true});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=T.PCFSoftShadowMap;
     this.renderer.toneMapping=T.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.45;

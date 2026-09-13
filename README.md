@@ -4,7 +4,7 @@ A little instinct. A lot of market.
 
 **Built by Robin-kevin Vettik.** Software copyright and MIT license holder: **Robillionair OÜ**.
 
-A green, gold-wearing 3D fruit fly watches a live Polymarket workstation. Beside him, reconstructed MaleCNS anatomy carries branching light pulses from a leaky integrate-and-fire circuit. Order flow becomes sensory input; predictions become lessons; every accepted decision becomes a permanent entry in his browser's $100 ledger.
+A green, gold-wearing 3D fruit fly watches a live Polymarket workstation. Beside him, reconstructed MaleCNS anatomy carries branching light pulses from a leaky integrate-and-fire circuit. Order flow becomes sensory input; predictions become lessons; accepted decisions are saved in his shared local $100 ledger.
 
 ![The Degeneret Fly workstation and MaleCNS anatomy](docs/screenshot.png)
 
@@ -28,7 +28,7 @@ npm run check
 npm start
 ```
 
-`npm run check` runs thirteen automated tests, TypeScript checking, and the production build. `npm start` serves the generated `dist/` with the same public-data proxy. Default binding is loopback only. Override `PORT` if 4173 is occupied. Do not run development and production servers on the same port.
+`npm run check` runs fifteen automated tests, TypeScript checking, and the production build. `npm start` serves the generated `dist/` with the same public-data proxy. Default binding is loopback only. Override `PORT` if 4173 is occupied. Do not run development and production servers on the same port.
 
 For Kokoro **Adam**, local **Qwen 2.5 0.5B Q4**, and sequential Kick replies, follow [Streamer setup](docs/STREAMER-SETUP.md). Start with `npm run setup:models`, then click **Enable Adam** in the app. For genuine body-to-body synapse extraction through the official API, follow [Phase 1: MaleCNS connectivity](docs/CONNECTOME.md). That optional extraction requires Python and a neuPrint token; ordinary viewing does not.
 
@@ -54,7 +54,7 @@ Acetylcholine is assigned positive weights; GABA and glutamate receive negative 
 
 Once the observation window is ready, the learner stores a feature vector and a predicted sixty-second price change every ten seconds. Only a later, same-token observation can score that prediction. A bounded online gradient update adjusts three feature weights. Market switches discard pending lessons to prevent cross-contract contamination.
 
-This teaches a small price-response model, not language understanding or guaranteed trading skill. There is no historical training corpus, news analysis, or claim of profitability. The lesson counter shows actual completed prediction evaluations. Weights persist between visits in the same browser.
+This teaches a small price-response model, not language understanding or guaranteed trading skill. There is no historical training corpus, news analysis, or claim of profitability. The lesson counter shows actual completed prediction evaluations. Weights and completed lessons persist on the local server across browser sessions.
 
 ### 4. A decision must earn its place
 
@@ -62,7 +62,7 @@ A descending spike can request a fill, but the execution checks must also pass: 
 
 Buys walk actual ask depth, sells walk actual bid depth. A buy is limited to $8 and fifteen shares, with no borrowing or shorting. Slippage is the depth-weighted fill's deviation from the best executable quote. Cash plus inventory marked at the last observed bid produces equity. Closed-win percentage counts profitable sell fills, not resolved market outcomes. Fees, queue position, settlement, and fill competition are not modeled.
 
-The **Fly history** is a local execution ledger, not exchange-confirmed orders. It starts with $100, never sends an order or accesses a funded wallet, and saves every fill in localStorage. **Polymarket tape** is a separate read-only feed of public exchange trade reports. This separation keeps the character's decisions distinct from other traders' transactions.
+The **Fly history** is a local execution ledger, not exchange-confirmed orders. It starts with $100, never sends an order or accesses a funded wallet, and saves fills to the local server's ignored `.runtime/ledger.json`. **Polymarket tape** is a separate read-only feed of public exchange trade reports. This separation keeps the character's decisions distinct from other traders' transactions.
 
 ## Anatomy, mood and chemistry
 
@@ -108,10 +108,20 @@ An authenticated, reproducible connectivity export; a justified sensory-to-desce
 - **Pause decisions** stops neural decisions while live data and rendering continue.
 - Fly history is paginated without discarding fills. **Export fly history** downloads ledger and learning state as JSON.
 - The public tape starts with the latest 100 reports, then merges further ten-second Data API polls by transaction identity. It is a session collection, not all historical Polymarket activity; more than 100 trades between polls may leave gaps.
-- History and weights belong to this browser origin. Clearing site data erases them. Export regularly. Other browsers and OBS browser sources have separate storage.
+- History and weights are shared by browsers using this same local server. Clearing browser data does not erase the server ledger. Back up `.runtime/ledger.json` or use Export regularly; deleting the project/runtime directory does erase it.
 - A background/hidden browser may throttle animation and data timers. No catch-up trading occurs when it returns.
 
 ## Architecture
+
+### Local persistence and ownership
+
+On first startup, the first browser migrates its existing localStorage history into `.runtime/ledger.json`. Open your existing desk first when upgrading; a later browser cannot overwrite an established server ledger with its own older history. Files in `.runtime/` are ignored by Git and denied as static downloads. Each save uses an atomic replacement and monotonic revision; historical fills are append-only.
+
+The primary browser renews a twelve-second write lease every two seconds. Other browsers display the saved ledger without running a second learning/trading writer. After the primary closes, another open browser can take over when that lease expires. A storage/network failure pauses decisions. New fills request an immediate save; an interrupted in-flight save or sudden process failure can still lose changes since the last acknowledgment (normally up to the two-second checkpoint). Pending, unscored observations are rebuilt after a reload. This is local persistence, not a cloud service or always-running headless trader.
+
+### Expressive animation
+
+Negative realized exits trigger a two-beat tabletop slam; profitable exits trigger raised arms, nods and excited wing motion. Neutral exits do not pretend to be wins or losses. Idle choreography alternates leaning toward the monitor and antenna grooming, with mood-scaled typing and head movement between gestures. Occasional “Hey chat” greetings trigger a wave at actual audio playback start. Speaking expands mouth/proboscis motion and head nods. These gestures never manufacture a trade, reward or lesson. In development only, `?choreography` exposes isolated animation preview buttons for QA.
 
 | File | Responsibility |
 | --- | --- |

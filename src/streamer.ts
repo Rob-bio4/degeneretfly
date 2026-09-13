@@ -5,7 +5,7 @@ export interface ChatTurn {sequence:number;id:string;username:string;content:str
 type Turn={kind:'trade'|'chat'|'idle';text?:string;chat?:ChatTurn};
 export class Streamer {
   voice=new FlyVoice();private trades:Turn[]=[];private chats:Turn[]=[];private busy=false;private lastTalk=0;private lastLessons:number;private idleIndex=0;private cursor=0;private polling=false;private timer=0;
-  onLine:(text:string)=>void=()=>{};onStatus:(text:string)=>void=()=>{};onKick:(text:string)=>void=()=>{};
+  onLine:(text:string)=>void=()=>{};onStatus:(text:string)=>void=()=>{};onKick:(text:string)=>void=()=>{};onWave=()=>{};canSpeak=()=>true;
   constructor(private feed:PolymarketFeed,private agent:FlyAgent){this.lastLessons=agent.memory.lessons;}
   get backlog(){return this.trades.length+this.chats.length;}
   get canTrade(){return this.trades.length<12;}
@@ -30,6 +30,7 @@ export class Streamer {
   private state(){const q=this.feed.quote;return {market:this.feed.selectedMarket?.question,quoteFresh:!!q&&Date.now()-q.timestamp<8000,bid:q?.bid,ask:q?.ask,learning:{completed:this.agent.memory.lessons,pending:this.agent.pendingLessons,error:this.agent.memory.error},mood:{dopamine:this.agent.dopamine,octopamine:this.agent.octopamine,serotonin:this.agent.serotonin,acetylcholine:this.agent.acetylcholine},state:this.agent.state,ledger:{cash:this.agent.memory.cash,equity:this.agent.equity,fillCount:this.agent.memory.fills.length}};}
   private idle(){
     const a=this.agent,q=this.feed.quote;const n=this.idleIndex++;
+    if(n%7===0)return 'Hey chat! Your six-legged desk gremlin is still here. Say what\'s good. The antennae are listening, ser.';
     if(!q||Date.now()-q.timestamp>8000)return 'Chat, the feed is taking a breather. Waiting for a fresh book before moving these diamond hands.';
     if(a.memory.lessons>this.lastLessons){const count=a.memory.lessons-this.lastLessons;this.lastLessons=a.memory.lessons;return `Chat, ${count} new ${count===1?'lesson':'lessons'} scored. ${a.memory.lessons} total. I compared my prediction with the later price and adjusted my weights. Tiny brain, doing the homework.`;}
     if(!q.warm)return `Scoping ${this.feed.selectedMarket?.question}. Building a full minute of price memory. Can't speedrun the homework, ser.`;
@@ -40,13 +41,13 @@ export class Streamer {
       `Ledger check, chat. ${a.memory.cash.toFixed(2)} dollars cash, ${Object.keys(a.memory.holdings).length} open positions. The chain stays heavy. The sizing stays small.`];return lines[n%lines.length]!;
   }
   async pump(){
-    if(this.busy||!this.voice.enabled)return;
+    if(this.busy||!this.voice.enabled||!this.canSpeak())return;
     const turn=this.trades.shift()??this.chats.shift()??(Date.now()-this.lastTalk>5000?{kind:'idle' as const,text:this.idle()}:null);if(!turn)return;
     this.busy=true;
     try{
       let text=turn.text;
       if(turn.chat&&!text){this.onStatus(`Replying to ${turn.chat.username}…`);const r=await fetch('/api/reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...turn.chat,context:this.state()}),signal:AbortSignal.timeout(120000)});if(!r.ok)throw new Error('Qwen reply failed');text=`${turn.chat.username}, ${(await r.json()).text}`;turn.text=text;}
-      this.onLine(text!);this.onStatus(`Adam speaking · ${this.backlog} queued`);await this.voice.speak(text!);this.lastTalk=Date.now();
+      this.onLine(text!);this.voice.onSpeaking=active=>{if(active&&text!.startsWith('Hey chat!'))this.onWave();};this.onStatus(`Adam speaking · ${this.backlog} queued`);await this.voice.speak(text!);this.lastTalk=Date.now();
     }catch(error){
       if(turn.kind==='trade')this.trades.unshift(turn);else if(turn.kind==='chat')this.chats.unshift(turn);
       this.lastTalk=Date.now();this.onStatus(this.voice.enabled?`Voice paused: ${String((error as Error).message)}`:'Voice muted');

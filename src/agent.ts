@@ -1,6 +1,6 @@
 import type { Quote, Market } from './live-market';
 export interface Fill {id:number;timestamp:number;market:string;token:string;side:'BUY'|'SELL';quantity:number;price:number;pnl:number;slippage:number;reason:string}
-export interface Holding {quantity:number;cost:number;mark:number;name:string;openedAt?:number}
+export interface Holding {quantity:number;cost:number;mark:number;name:string;openedAt?:number;market?:Market}
 export interface Memory {weights:number[];lessons:number;error:number;correct:number;cash:number;holdings:Record<string,Holding>;fills:Fill[]}
 const KEY='degeneretfly.ledger.v2';
 export const clamp=(x:number,a=0,b=1)=>Math.min(b,Math.max(a,x));
@@ -8,7 +8,7 @@ export class FlyAgent {
   memory:Memory={weights:[0.002,0.002,0.001],lessons:0,error:0,correct:0,cash:100,holdings:{},fills:[]};
   private pending:{time:number;token:string;mid:number;x:number[];prediction:number}[]=[];
   private lastLesson=0;private lastFill=0;private consumedQuote=0;
-  storageHealthy=true;prediction=0;dopamine=0;octopamine=0;serotonin=0;acetylcholine=0;state='Observing';
+  storageHealthy=true;sharedStorage=false;prediction=0;dopamine=0;octopamine=0;serotonin=0;acetylcholine=0;state='Observing';
   get pendingLessons(){return this.pending.length;}
   get nextLessonSeconds(){return this.pending.length?Math.max(0,Math.ceil((this.pending[0]!.time+60000-Date.now())/1000)):null;}
   intent(q:Quote,now=Date.now()){
@@ -20,6 +20,7 @@ export class FlyAgent {
   }
   constructor(){try{const raw=localStorage.getItem(KEY);if(raw){const m=JSON.parse(raw);if(Array.isArray(m.weights)&&m.weights.length===3&&m.weights.every(Number.isFinite)&&Number.isFinite(m.cash)&&m.cash>=0&&Array.isArray(m.fills)&&m.holdings){this.memory=m;this.lastFill=m.fills.at(-1)?.timestamp??0;}}}catch{this.storageHealthy=false;}}
   private features(q:Quote){return [q.imbalance,clamp(q.velocity1m*30,-1,1),clamp(q.spreadCompression*100,-1,1)];}
+  restore(memory:Memory){this.memory=memory;this.lastFill=memory.fills.at(-1)?.timestamp??0;this.pending=[];this.consumedQuote=0;this.storageHealthy=true;}
   observe(q:Quote){
     const now=Date.now();const x=this.features(q);
     if(now-q.timestamp>8000||now<q.timestamp)return;
@@ -53,12 +54,12 @@ export class FlyAgent {
     if(qty<1)return null;
     const price=value/qty,pnl=side==='SELL'?(price-(h?.cost??price))*qty:0;
     if(side==='BUY'){
-      const old=h?.quantity??0;this.memory.holdings[q.token]={quantity:old+qty,cost:((h?.cost??0)*old+value)/(old+qty),mark:q.bid,name:market.question,openedAt:h?.openedAt??now};this.memory.cash-=value;
+      const old=h?.quantity??0;this.memory.holdings[q.token]={quantity:old+qty,cost:((h?.cost??0)*old+value)/(old+qty),mark:q.bid,name:market.question,openedAt:h?.openedAt??now,market};this.memory.cash-=value;
     }else{this.memory.cash+=value;h!.quantity-=qty;if(h!.quantity<1e-6)delete this.memory.holdings[q.token];}
     const fill:Fill={id:this.memory.fills.length+1,timestamp:now,market:market.question,token:q.token,side,quantity:qty,price,pnl,slippage:Math.abs(price-(side==='BUY'?q.ask:q.bid))*qty,reason:side==='BUY'?(explore?'DNp01 → $2 pressure exploration; sixty-second observation':'MB output → DNp01; learned edge clears spread'):'DNp02 → risk / sixty-second evaluation exit'};
     this.memory.fills.push(fill);this.lastFill=now;this.consumedQuote=q.timestamp;this.dopamine=clamp(.5+pnl/2);this.save();return fill;
   }
   get equity(){return this.memory.cash+Object.values(this.memory.holdings).reduce((s,h)=>s+h.quantity*h.mark,0);}
   get wins(){const closed=this.memory.fills.filter(f=>f.side==='SELL');return closed.length?closed.filter(f=>f.pnl>0).length/closed.length:null;}
-  save(){try{localStorage.setItem(KEY,JSON.stringify(this.memory));this.storageHealthy=true;}catch{this.storageHealthy=false;this.state='Storage full · decisions paused';}}
+  save(){try{localStorage.setItem(KEY,JSON.stringify(this.memory));this.storageHealthy=true;}catch{this.storageHealthy=this.sharedStorage;if(!this.sharedStorage)this.state='Storage full · decisions paused';}}
 }

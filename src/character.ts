@@ -1,7 +1,7 @@
 import * as T from 'three';
 const sphere=new T.SphereGeometry(1,32,24);
 export interface Mood {dopamine:number;octopamine:number;serotonin:number;acetylcholine:number;speaking:boolean;active:boolean}
-export type Gesture='win'|'loss'|'wave'|'groom'|'lean';
+export type Gesture='win'|'loss'|'wave'|'groom'|'lean'|'point'|'shrug'|'clap'|'headbang'|'stretch'|'drum'|'facepalm'|'lookaround'|'wingflex'|'antenna';
 export function makeFly(){
   const fly=new T.Group();
   const headParts:T.Object3D[]=[],arms:T.Group[]=[],wings:T.Group[]=[];
@@ -67,13 +67,14 @@ export function makeFly(){
   const pendant=new T.Mesh(new T.BoxGeometry(.22,.115,.03),gold);pendant.position.set(0,1.35,.36);fly.add(pendant);
   for(let i=0;i<21;i++)add(jewel,[(i%7-3)*.027,1.32+Math.floor(i/7)*.029,.379],[.012,.012,.009]);
   const upper=pivot(fly.children.filter(p=>p.position.y>=1.3),new T.Vector3(0,1.3,0));
-  let gesture:Gesture|null=null,elapsed=0,idleAt=12,idleCount=0;
-  const durations:Record<Gesture,number>={win:3.8,loss:2.6,wave:3.2,groom:4.5,lean:5.5};
+  let gesture:Gesture|null=null,elapsed=0,idleAt=1,idleCount=0;
+  const durations:Record<Gesture,number>={win:3.8,loss:2.6,wave:3.2,groom:4.5,lean:5.5,point:3,shrug:2.8,clap:3,headbang:3.4,stretch:4,drum:3.8,facepalm:3,lookaround:3.5,wingflex:3,antenna:3};
+  const repertoire:Gesture[]=['lean','groom','point','shrug','drum','lookaround','wingflex','antenna','stretch','headbang','clap','facepalm'];
   function react(next:Gesture){if((gesture==='win'||gesture==='loss')&&next==='wave')return;gesture=next;elapsed=0;}
   const state={dopamine:0,octopamine:0,serotonin:1,acetylcholine:0};
   function animate(time:number,dt:number,mood:Mood){
-    elapsed+=dt;if(gesture&&elapsed>durations[gesture]){gesture=null;idleAt=time+10+idleCount%4*3;}
-    if(!gesture&&time>idleAt){react(idleCount++%2?'groom':'lean');}
+    elapsed+=dt;if(gesture&&elapsed>durations[gesture]){gesture=null;idleAt=time+.35;}
+    if(!gesture&&time>idleAt){react(repertoire[idleCount++%repertoire.length]!);}
     const blend=1-Math.exp(-dt*4);for(const key of ['dopamine','octopamine','serotonin','acetylcholine'] as const)state[key]+=(Math.min(1,Math.max(0,mood.active?mood[key]:key==='serotonin'?1:0))-state[key])*blend;
     const arousal=state.octopamine,focus=state.acetylcholine,calm=state.serotonin,reward=state.dopamine;
     const speech=mood.speaking?1:0;
@@ -103,9 +104,25 @@ export function makeFly(){
       }else if(gesture==='groom'){
         arms.forEach((arm,i)=>arm.rotation.set((-1.65+Math.sin(elapsed*9+i)*.07)*envelope,(i?-.13:.13)*envelope,0));
         head.rotation.x+=.18*envelope;head.rotation.z+=Math.sin(elapsed*5)*.07*envelope;
-      }else{
+      }else if(gesture==='lean'){
         upper.rotation.x=.20*envelope;head.rotation.x=-.14*envelope;
         arms.forEach(arm=>arm.rotation.x=-.15*envelope);
+      }else if(gesture==='point'){
+        arms[1]!.rotation.set(-.7*envelope,-.2*envelope,0);head.rotation.y=-.22*envelope;
+      }else if(gesture==='shrug'||gesture==='stretch'){
+        arms.forEach((arm,i)=>arm.rotation.set(-(gesture==='stretch'?2.4:1.1)*envelope,0,(i?-.45:.45)*envelope));head.rotation.z=Math.sin(elapsed*4)*.2*envelope;
+      }else if(gesture==='clap'){
+        arms.forEach((arm,i)=>arm.rotation.set(-.9*envelope,(i?-1:1)*(.15+.18*Math.abs(Math.sin(elapsed*8)))*envelope,0));
+      }else if(gesture==='headbang'){
+        head.rotation.x+=Math.sin(elapsed*9)*.32*envelope;upper.rotation.x+=Math.sin(elapsed*9)*.055*envelope;
+      }else if(gesture==='drum'){
+        arms.forEach((arm,i)=>arm.rotation.x=-Math.max(0,Math.sin(elapsed*11+i*Math.PI))*.6*envelope);
+      }else if(gesture==='facepalm'||gesture==='antenna'){
+        arms[0]!.rotation.set(-(gesture==='antenna'?1.7:1.35)*envelope,-.16*envelope,0);head.rotation.x=.22*envelope;
+      }else if(gesture==='lookaround'){
+        head.rotation.y=Math.sin(elapsed*2)*.55*envelope;upper.rotation.y=Math.sin(elapsed*2)*.08*envelope;
+      }else{
+        wings.forEach((w,i)=>w.rotation.y+=(i?1:-1)*(.45+Math.sin(elapsed*8)*.3)*envelope);
       }
     }
   }

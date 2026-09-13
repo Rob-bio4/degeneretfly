@@ -11,10 +11,10 @@ export class Streamer {
   get canTrade(){return this.trades.length<12;}
   async enable(){await this.voice.enable();this.onStatus('Adam is warming up…');void fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(r=>{if(!r.ok)throw new Error();this.onStatus('Qwen + Adam ready');void this.pump();}).catch(()=>this.onStatus('Model unavailable · run npm run setup:models'));}
   mute(){this.voice.mute();this.onStatus('Voice muted');}
-  start(){this.timer=window.setInterval(()=>{void this.poll();void this.pump();},2000);void this.poll();}
+  start(){this.timer=window.setInterval(()=>{void this.poll();void this.pump();},1000);void this.poll();}
   stop(){clearInterval(this.timer);this.voice.mute();}
   entry(fill:Fill){
-    const outcome=fill.side==='BUY'?'Entry locked, chat':fill.pnl>=0?'Exit filled. Banked a W':'Exit filled. Took the L';
+    const outcome=fill.side==='BUY'?'Entry locked, chat':fill.pnl>0?'Exit filled. Banked a W':fill.pnl<0?'Exit filled. Took the L':'Exit filled. Broke even';
     const text=`${outcome}. ${fill.side==='BUY'?'Bought':'Sold'} ${fill.quantity.toFixed(1)} YES shares in ${fill.market}, at ${(fill.price*100).toFixed(1)} cents.${fill.side==='SELL'?` Realized ${fill.pnl<0?'minus ':''}${Math.abs(fill.pnl).toFixed(2)} dollars.`:''}`;
     this.trades.push({kind:'trade',text});this.onLine(text);void this.pump();
   }
@@ -42,7 +42,7 @@ export class Streamer {
   }
   async pump(){
     if(this.busy||!this.voice.enabled||!this.canSpeak())return;
-    const turn=this.trades.shift()??this.chats.shift()??(Date.now()-this.lastTalk>5000?{kind:'idle' as const,text:this.idle()}:null);if(!turn)return;
+    const turn=this.trades.shift()??this.chats.shift()??(Date.now()-this.lastTalk>700?{kind:'idle' as const,text:this.idle()}:null);if(!turn)return;
     this.busy=true;
     try{
       let text=turn.text;

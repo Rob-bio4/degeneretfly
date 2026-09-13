@@ -28,7 +28,7 @@ npm run check
 npm start
 ```
 
-`npm run check` runs fifteen automated tests, TypeScript checking, and the production build. `npm start` serves the generated `dist/` with the same public-data proxy. Default binding is loopback only. Override `PORT` if 4173 is occupied. Do not run development and production servers on the same port.
+`npm run check` runs seventeen automated tests, TypeScript checking, and the production build. `npm start` serves the generated `dist/` with the same public-data proxy. Default binding is loopback only. Override `PORT` if 4173 is occupied. Do not run development and production servers on the same port.
 
 For Kokoro **Adam**, local **Qwen 2.5 0.5B Q4**, and sequential Kick replies, follow [Streamer setup](docs/STREAMER-SETUP.md). Start with `npm run setup:models`, then click **Enable Adam** in the app. For genuine body-to-body synapse extraction through the official API, follow [Phase 1: MaleCNS connectivity](docs/CONNECTOME.md). That optional extraction requires Python and a neuPrint token; ordinary viewing does not.
 
@@ -36,7 +36,7 @@ For Kokoro **Adam**, local **Qwen 2.5 0.5B Q4**, and sequential Kick replies, fo
 
 ### 1. He senses the order book
 
-The local server discovers active YES contracts through Polymarket Gamma. It favors recent trading volume, excludes near-resolved prices, and verifies a two-sided CLOB book before selecting a contract. The fly automatically rotates through discovered eligible contracts with a three-minute observation dwell, and keeps focus while a position remains open. The monitor shows its current focus; it does not scan the entire exchange simultaneously.
+The local server discovers active YES contracts through Polymarket Gamma. It favors recent trading volume, excludes near-resolved prices, and verifies a two-sided CLOB book before selecting a contract. A rolling 24-contract watchlist reads six books concurrently every two seconds (slower on network delays), and moves through the discovery pool in four-minute blocks. This gives each window time to collect observations and score delayed predictions. The monitor changes focus approximately every twenty seconds, prioritizing fresh, warmed candidates by estimated edge less spread. Open positions retain focus. This is bounded discovery, not simultaneous coverage of the entire exchange.
 
 Actual top-five depth imbalance, a full minute of observed midpoint velocity, and changes in spread become effective membrane-driving inputs. There are no price generators. An unavailable or stale feed pauses decisions. A newly selected market must accumulate sixty seconds of observations.
 
@@ -52,13 +52,19 @@ Acetylcholine is assigned positive weights; GABA and glutamate receive negative 
 
 ### 3. He learns from what happened next
 
-Once the observation window is ready, the learner stores a feature vector and a predicted sixty-second price change every ten seconds. Only a later, same-token observation can score that prediction. A bounded online gradient update adjusts three feature weights. Market switches discard pending lessons to prevent cross-contract contamination.
+Once the observation window is ready, the learner stores a feature vector and a predicted sixty-second price change at most every ten seconds per token. Only a later, same-token observation can score that prediction. A bounded online gradient update adjusts three feature weights. Display-focus switches preserve token-specific background observations; samples older than 75 seconds expire unscored rather than borrowing another contract's outcome.
 
 This teaches a small price-response model, not language understanding or guaranteed trading skill. There is no historical training corpus, news analysis, or claim of profitability. The lesson counter shows actual completed prediction evaluations. Weights and completed lessons persist on the local server across browser sessions.
 
 ### 4. A decision must earn its place
 
-A descending spike can request a fill, but the execution checks must also pass: fresh quote, completed warmup, seven-second cooldown, sufficient cash/inventory, healthy storage, and a learned edge greater than the full spread plus a 0.0005 price buffer. A separate bounded $2 pressure-exploration path is available at most once per minute when bid imbalance exceeds 0.30 and spread is at most 0.015. Existing positions can also exit on a 5% loss, 4% gain, or sixty-second evaluation threshold. Entries stop near the end of a market dwell so outcomes have time to mature. Intent drives the authored descending channels; their threshold crossings gate fills, not the language model.
+A descending spike can request a fill, but execution checks must also pass: fresh quote, completed warmup, seven-second cooldown, sufficient cash/inventory, healthy storage, and learned edge above the full spread plus a 0.0015 price buffer. A $2 exploration path requires positive observed movement larger than the spread, bid imbalance above 0.45, spread at most 0.005 and at most 2% of ask, and fifteen seconds since the last fill. Faster scanning does not waive these gates.
+
+Exits respond to a predicted negative edge, a bid decline from entry bid exceeding the larger of 0.003 or 4% of cost, an executable profit above the larger of 0.002 or 1.25 spreads, or a three-minute maximum hold. The stop no longer treats the initial spread as immediate adverse price movement. Legacy positions without entry-bid metadata use their stored cost. Intent drives the authored descending channels; their threshold crossings gate fills, not the language model.
+
+### Why the earlier ledger showed zero wins
+
+The reviewed ledger contained 18 exits, no profitable exits and approximately $1.34 realized loss. Repeated entries at $0.21 followed by timed exits at $0.20 lost about $0.095 on 9.52 shares, even with zero slippage. The permissive imbalance-only exploration rule and one-minute forced exit repeatedly paid the spread without favorable movement. The revised gates target that specific churn. Past losses are preserved; neither faster scanning nor these changes demonstrate profitability. Fees remain unmodeled, so displayed performance can still be optimistic.
 
 Buys walk actual ask depth, sells walk actual bid depth. A buy is limited to $8 and fifteen shares, with no borrowing or shorting. Slippage is the depth-weighted fill's deviation from the best executable quote. Cash plus inventory marked at the last observed bid produces equity. Closed-win percentage counts profitable sell fills, not resolved market outcomes. Fees, queue position, settlement, and fill competition are not modeled.
 
@@ -154,6 +160,12 @@ Websocket books supplement three-second CLOB polling; REST remains active if the
 If a feed is unavailable, confirm Internet access and inspect `/api/health`. The monitor and status show waiting/stale states until genuine data returns. If anatomy is missing, regenerate assets using the commands above. WebGL2 must be enabled with hardware acceleration for the best experience.
 
 ## Streaming
+
+Open **http://localhost:4173/?stream=1** for the dedicated, letterboxed **16:9** composition. The large desk camera shows the fly and its monitor; the inset renders the same animated 3D fly from a separate front-facing camera. The right column contains brain telemetry and the scrollable execution journal. Quotes, ledger totals, speech captions, connection status and credits remain inside the frame. The face camera is capped at 24 fps to reduce the additional rendering cost.
+
+The character continuously cycles through fifteen expressive gestures, with short transitions: outcome reactions, greeting wave, grooming, leaning, pointing, shrugging, clapping, head bobbing, stretching, drumming, facepalm, looking around, wing flexing and antenna touch. Its baseline typing and breathing continue between gestures. Animation remains active while the strategy waits; trading still pauses on stale data or storage failure. Speech is sequential with a shorter inter-turn gap, but model inference, autoplay permissions and outages can still cause silence.
+
+For OBS: add a Browser Source, URL above, **width 1920 / height 1080**. Use **Interact → Enable Adam voice**, capture that source's audio, and avoid capturing it a second time via desktop audio. Keep the source active. Enable voice in just one browser to avoid duplicated speech. A read-only stream view can announce newly saved fills from the primary trader without creating duplicate orders. See [Kick + voice connection instructions](docs/STREAMER-SETUP.md).
 
 Use an OBS browser source pointed at the local URL, preferably 1920×1080 or larger. Start the local server before opening OBS. Browser sources need permission to access loopback. Keep the source active to preserve observation continuity. The site is responsive; the history and narrative continue below the main scene.
 

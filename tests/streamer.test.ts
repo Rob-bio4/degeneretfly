@@ -4,14 +4,13 @@ import {FlyAgent} from '../src/agent';
 import {PolymarketFeed,MARKET_DWELL_MS,type Quote} from '../src/live-market';
 beforeEach(()=>{vi.stubGlobal('localStorage',{getItem:()=>null,setItem:()=>{}});});
 afterEach(()=>{vi.unstubAllGlobals();vi.useRealTimers();});
-it('finishes real-time lessons before every automatic market rotation',()=>{
-  vi.useFakeTimers();const a=new FlyAgent();let total=0;
-  for(let market=0;market<3;market++){
-    const before=a.memory.lessons;
-    for(let elapsed=0;elapsed<MARKET_DWELL_MS;elapsed+=3000){vi.setSystemTime(1000000+total+elapsed);
+it('scores interleaved background markets despite twenty-second display rotation',()=>{
+  vi.useFakeTimers();const a=new FlyAgent();expect(MARKET_DWELL_MS).toBe(20000);
+    for(let elapsed=0;elapsed<180000;elapsed+=3000){vi.setSystemTime(1000000+elapsed);
+      for(let market=0;market<3;market++){
       const q:Quote={token:String(market),timestamp:Date.now(),warm:elapsed>=60000,bid:.49,ask:.5,mid:.495+elapsed/1e8,spread:.01,imbalance:.3,velocity1m:.001,spreadCompression:0,bids:[{price:.49,size:100}],asks:[{price:.5,size:100}],history:[],isLive:true};a.observe(q);
-    }expect(a.memory.lessons).toBeGreaterThan(before);total+=MARKET_DWELL_MS;
-  }
+      }
+    }expect(a.memory.lessons).toBeGreaterThan(9);
 });
 it('does not score predictions after a long outage',()=>{
   vi.useFakeTimers();vi.setSystemTime(1000000);const a=new FlyAgent();const q={token:'a',timestamp:Date.now(),warm:true,mid:.5,bid:.49,spread:.02,imbalance:.2,velocity1m:0,spreadCompression:0} as Quote;

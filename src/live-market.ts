@@ -10,11 +10,13 @@ export function levels(input:unknown,desc=false):Level[]{
 }
 const array=(v:unknown):string[]=>{try{const a=typeof v==='string'?JSON.parse(v):v;return Array.isArray(a)?a.map(String):[];}catch{return[];}};
 const get=async(url:string)=>{const r=await fetch(url,{signal:AbortSignal.timeout(14000),cache:'no-store'});if(!r.ok)throw new Error(`Feed ${r.status}`);return r.json();};
-export const MARKET_DWELL_MS=180000;
+export const MARKET_DWELL_MS=20000;
 export class PolymarketFeed {
   markets:Market[]=[];selectedMarket:Market|null=null;quote:Quote|null=null;tape:Tape[]=[];
   selectedAt=0;canRotate:()=>boolean=()=>true;
   resumeMarket:()=>Market|undefined=()=>undefined;
+  historyFor:(token:string)=>{time:number;price:number}[]=()=>[];
+  priority:(market:Market)=>number=()=>0;
   get remainingInMarket(){return Math.max(0,MARKET_DWELL_MS-(Date.now()-this.selectedAt));}
   onQuote:((q:Quote)=>void)|null=null;onStatus:((s:string)=>void)|null=null;onTape:(()=>void)|null=null;
   private socket:WebSocket|null=null;private generation=0;private history:{time:number;price:number}[]=[];private heartbeat=0;private timer=0;private rotation=0;private selectedIndex=0;
@@ -43,7 +45,7 @@ export class PolymarketFeed {
     this.selectedIndex=this.markets.indexOf(m);
     const generation=++this.generation;this.socket?.close();clearTimeout(this.timer);clearInterval(this.heartbeat);
     clearTimeout(this.rotation);
-    this.quote=null;this.history=[];this.tape=[];this.selectedMarket=m;this.onStatus?.('Connecting · '+m.question);
+    this.quote=null;this.history=[...this.historyFor(m.yesTokenId)];this.tape=[];this.selectedMarket=m;this.onStatus?.('Connecting · '+m.question);
     this.selectedAt=Date.now();
     let lastTape=0;
     const refresh=async()=>{
@@ -76,6 +78,8 @@ export class PolymarketFeed {
   }
   private async rotate(){
     if(!this.canRotate()){this.rotation=window.setTimeout(()=>void this.rotate(),10000);return;}
+    const ranked=this.markets.filter(m=>m.id!==this.selectedMarket?.id).sort((a,b)=>this.priority(b)-this.priority(a));
+    if(ranked[0]&&this.priority(ranked[0])>0){await this.selectMarket(ranked[0].id);return;}
     const generation=this.generation;
     for(let step=1;step<=Math.min(30,this.markets.length);step++){
       if(generation!==this.generation)return;
@@ -91,7 +95,7 @@ export class PolymarketFeed {
   private accept(book:{bids:unknown;asks:unknown}){
     const bids=levels(book.bids,true),asks=levels(book.asks);if(!bids[0]||!asks[0]||bids[0].price>asks[0].price){this.onStatus?.('Waiting for order book liquidity');this.quote=null;return;}
     const time=Date.now(),bid=bids[0].price,ask=asks[0].price,mid=(bid+ask)/2,spread=ask-bid;
-    const previous=this.history.filter(x=>x.time<=time-60000).at(-1);
+    const previous=this.history.filter(x=>x.time<=time-60000&&x.time>=time-75000).at(-1);
     if(!this.history.length||time-this.history.at(-1)!.time>800)this.history.push({time,price:mid});
     this.history=this.history.filter(x=>x.time>time-600000);
     const b=bids.slice(0,5).reduce((s,x)=>s+x.size,0),a=asks.slice(0,5).reduce((s,x)=>s+x.size,0);

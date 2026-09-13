@@ -9,6 +9,12 @@ export class Studio {
   private controls:OrbitControls;private fly=makeFly();private screen:T.CanvasTexture;private ctx:CanvasRenderingContext2D;
   private brainRenderer:T.WebGLRenderer;private brainScene=new T.Scene();private brainCamera=new T.PerspectiveCamera(34,1,.01,50);
   anatomy=new Anatomy();private clock=0;private glow=new T.PointLight(0xb8a1ff,0,4);private kick=0;
+  private faceRenderer:T.WebGLRenderer|null=null;private faceCamera=new T.PerspectiveCamera(58,4/3,.05,50);private lastFace=0;
+  attachFaceCamera(canvas:HTMLCanvasElement){
+    this.faceRenderer=new T.WebGLRenderer({canvas,antialias:true});this.faceRenderer.setPixelRatio(1);this.faceRenderer.toneMapping=T.ACESFilmicToneMapping;this.faceRenderer.toneMappingExposure=1.6;
+    this.faceCamera.position.set(.65,2.5,-.30);this.faceCamera.lookAt(.65,2.32,.95);
+    new ResizeObserver(()=>{const w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;this.faceRenderer!.setSize(w,h,false);this.faceCamera.aspect=w/h;this.faceCamera.updateProjectionMatrix();}).observe(canvas.parentElement!);
+  }
   react(gesture:Gesture){this.fly.react(gesture);}
   constructor(private canvas:HTMLCanvasElement,private brainCanvas:HTMLCanvasElement){
     this.renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:true});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=T.PCFSoftShadowMap;
@@ -59,7 +65,7 @@ export class Studio {
     this.resize();this.draw(null,[],[],'Connecting to Polymarket');
   }
   private resize(){for(const [canvas,renderer,camera] of [[this.canvas,this.renderer,this.camera],[this.brainCanvas,this.brainRenderer,this.brainCamera]] as const){const w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)continue;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}}
-  render(dt:number,mood:Mood){this.clock+=dt;this.controls.update();this.fly.animate(this.clock,dt,mood);this.kick=Math.max(0,this.kick-dt*2);this.glow.intensity=this.kick*3;this.anatomy.update(this.clock);this.renderer.render(this.scene,this.camera);this.brainRenderer.render(this.brainScene,this.brainCamera);}
+  render(dt:number,mood:Mood){this.clock+=dt;this.controls.update();this.fly.animate(this.clock,dt,mood);this.kick=Math.max(0,this.kick-dt*2);this.glow.intensity=this.kick*3;this.anatomy.update(this.clock);this.renderer.render(this.scene,this.camera);this.brainRenderer.render(this.brainScene,this.brainCamera);if(this.faceRenderer&&this.clock-this.lastFace>1/24){this.faceRenderer.render(this.scene,this.faceCamera);this.lastFace=this.clock;}}
   spike(motor:boolean){this.anatomy.spike(this.clock,motor);if(motor)this.kick=1;}
   home(){this.camera.position.set(5.1,3.8,6.7);this.controls.target.set(.3,1.45,.25);}
   draw(q:Quote|null,tape:Tape[],fills:Fill[],question:string){

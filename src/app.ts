@@ -6,22 +6,32 @@ import { FlyAgent } from './agent';
 import { LIFConnectome } from './connectome';
 import { Streamer } from './streamer';
 import { SharedLedger } from './shared-ledger';
+import {MarketScanner} from './scanner';
+import {broadcastLayout} from './broadcast';
 const el=<T extends HTMLElement=HTMLElement>(id:string)=>document.getElementById(id) as T;
 const feed=new PolymarketFeed(),agent=new FlyAgent(),network=new LIFConnectome();
 const shared=new SharedLedger(agent);
+const scanner=new MarketScanner(()=>feed.markets);
+feed.historyFor=token=>scanner.history(token);
+feed.priority=m=>{const q=scanner.quotes.get(m.yesTokenId);return q&&q.warm&&Date.now()-q.timestamp<10000?Math.max(.00001,agent.forecast(q)-q.spread):0;};
+scanner.onQuote=q=>{if(shared.writable){agent.observe(q,true);if(feed.quote)agent.prediction=agent.forecast(feed.quote);}};
 feed.canRotate=()=>!feed.selectedMarket||!agent.memory.holdings[feed.selectedMarket.yesTokenId];
-feed.resumeMarket=()=>Object.values(agent.memory.holdings).find(h=>h.market)?.market;
+feed.resumeMarket=()=>Object.entries(agent.memory.holdings).map(([token,h])=>h.market??feed.markets.find(m=>m.yesTokenId===token)).find(Boolean);
 el<HTMLSelectElement>('market').disabled=true;
 const streamer=new Streamer(feed,agent);
-streamer.canSpeak=()=>shared.writable;
+// Voice may be enabled on the OBS view while a different browser owns execution.
+streamer.canSpeak=()=>true;
 const voiceButton=document.createElement('button');voiceButton.textContent='Enable Adam voice';voiceButton.className='voice-toggle';voiceButton.onclick=()=>{if(streamer.voice.enabled){streamer.mute();voiceButton.textContent='Enable Adam voice';}else{void streamer.enable();voiceButton.textContent='Mute Adam voice';}};el('pause').parentElement?.append(voiceButton);
 const streamPanel=document.createElement('section');streamPanel.className='stream-panel';
 const subtitle=document.createElement('p'),voiceStatus=document.createElement('span'),kickStatus=document.createElement('span'),learningStatus=document.createElement('span');
 subtitle.id='fly-subtitle';subtitle.textContent='Enable Adam to hear the fly think out loud.';voiceStatus.textContent='Kokoro Adam · voice muted';kickStatus.textContent='Kick setup needed';learningStatus.id='learning-status';streamPanel.append(subtitle,voiceStatus,kickStatus,learningStatus);el('pause').parentElement?.after(streamPanel);
 streamer.onLine=text=>subtitle.textContent=text;streamer.onStatus=text=>voiceStatus.textContent=text;streamer.onKick=text=>kickStatus.textContent=text;streamer.start();
 let studio:Studio|null=null;
+const faceCanvas=broadcastLayout(streamPanel);
+const scanStatus=document.createElement('span');scanStatus.id='scan-status';streamPanel.append(scanStatus);
 streamer.onWave=()=>studio?.react('wave');
 try{studio=new Studio(el<HTMLCanvasElement>('studio'),el<HTMLCanvasElement>('brain'));}catch{el('anatomy-status').textContent='WebGL unavailable on this device';}
+if(faceCanvas)studio?.attachFaceCamera(faceCanvas);
 // Local animation QA only: never creates fills or changes learning data.
 if(import.meta.env.DEV&&new URLSearchParams(location.search).has('choreography')){
   const controls=document.createElement('div');controls.className='stream-panel';
@@ -63,12 +73,13 @@ el('export').onclick=()=>{const blob=new Blob([JSON.stringify(agent.memory,null,
 function animate(now:number){
   const dt=Math.min(now-last,50);last=now;const q=feed.quote,fresh=q&&Date.now()-q.timestamp<8000;
   network.setDecisionDrive(fresh?agent.intent(q):{buy:false,sell:false});
-  if(fresh&&!paused&&shared.writable){accumulator+=dt;while(accumulator>=8.333){for(const spike of network.step(8.333)){
+  if(fresh&&!paused){accumulator+=dt;while(accumulator>=8.333){for(const spike of network.step(8.333)){
     spikes.push(now);el('region').textContent=spike.neuropil;const motor=spike.neuropil==='DN';studio?.spike(motor);
-    if(motor&&feed.selectedMarket&&(spike.neuronId!=='DNp01'||(streamer.canTrade&&feed.remainingInMarket>65000))){const fill=agent.act(spike.neuronId==='DNp01'?'BUY':'SELL',q,feed.selectedMarket);if(fill){history();streamer.entry(fill);if(fill.side==='SELL'&&fill.pnl!==0)studio?.react(fill.pnl>0?'win':'loss');void shared.sync();}}
+    if(shared.writable&&motor&&feed.selectedMarket&&(spike.neuronId!=='DNp01'||streamer.canTrade)){const fill=agent.act(spike.neuronId==='DNp01'?'BUY':'SELL',q,feed.selectedMarket);if(fill){history();streamer.entry(fill);if(fill.side==='SELL'&&fill.pnl!==0)studio?.react(fill.pnl>0?'win':'loss');void shared.sync();}}
   }accumulator-=8.333;}}else{accumulator=0;}
   studio?.render(dt/1000,{dopamine:agent.dopamine,octopamine:agent.octopamine,serotonin:agent.serotonin,acetylcholine:agent.acetylcholine,speaking:streamer.voice.speaking,active:!!fresh&&!paused});
   if(now-lastUi>400){lastUi=now;spikes=spikes.filter(t=>now-t<1000);el('hz').textContent=String(spikes.length);el('voltage').textContent=network.getVoltage('MBON-02').toFixed(1)+' mV';
+    scanStatus.textContent=`${scanner.checked} books checked · ${feed.markets.length} discovered contracts · ${shared.writable?'primary trader':'shared-ledger viewer'}`;
     el('signal-dot').classList.toggle('live',!!fresh);el('age').textContent=q?((Date.now()-q.timestamp)/1000).toFixed(1)+'s':'—';el('history-note').textContent=tab==='ledger'?shared.status:'Public Polymarket tape';
     if(q&&!fresh)el('connection').textContent='Feed stale · waiting';el('fly-state').textContent=paused?'Taking a breather':!fresh?'Waiting for market input':agent.state;
     for(const [key] of chemistry){el('bar-'+key).style.width=(fresh?agent[key]*100:0)+'%';el('bio-'+key).textContent=fresh?String(Math.round(agent[key]*100)):'—';}
@@ -78,6 +89,7 @@ function animate(now:number){
   requestAnimationFrame(animate);
 }
 document.addEventListener('visibilitychange',()=>{last=performance.now();accumulator=0;});
-window.addEventListener('beforeunload',()=>{feed.stop();streamer.stop();});
-shared.onChange=()=>{history();const held=feed.resumeMarket();if(shared.writable&&held&&feed.selectedMarket&&feed.selectedMarket.id!==held.id){if(!feed.markets.some(m=>m.id===held.id))feed.markets.unshift(held);void feed.selectMarket(held.id);}};
-history();void shared.sync().then(()=>feed.start());window.setInterval(()=>void shared.sync(),2000);requestAnimationFrame(animate);
+window.addEventListener('beforeunload',()=>{feed.stop();streamer.stop();scanner.stop();});
+let seenFills:number|null=null;
+shared.onChange=()=>{history();if(seenFills!==null&&!shared.writable)for(const fill of agent.memory.fills.slice(seenFills)){streamer.entry(fill);if(fill.side==='SELL'&&fill.pnl!==0)studio?.react(fill.pnl>0?'win':'loss');}seenFills=agent.memory.fills.length;const held=feed.resumeMarket();if(shared.writable&&held&&feed.selectedMarket&&feed.selectedMarket.id!==held.id){if(!feed.markets.some(m=>m.id===held.id))feed.markets.unshift(held);void feed.selectMarket(held.id);}};
+history();void shared.sync().then(async()=>{await feed.start();scanner.start();});window.setInterval(()=>void shared.sync(),2000);requestAnimationFrame(animate);

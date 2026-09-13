@@ -2,6 +2,8 @@
 
 A little instinct. A lot of market.
 
+**Built by Robin-kevin Vettik.** Software copyright and MIT license holder: **Robillionair OÜ**.
+
 A green, gold-wearing 3D fruit fly watches a live Polymarket workstation. Beside him, reconstructed MaleCNS anatomy carries branching light pulses from a leaky integrate-and-fire circuit. Order flow becomes sensory input; predictions become lessons; every accepted decision becomes a permanent entry in his browser's $100 ledger.
 
 ![The Degeneret Fly workstation and MaleCNS anatomy](docs/screenshot.png)
@@ -67,6 +69,38 @@ The **Fly history** is a local execution ledger, not exchange-confirmed orders. 
 The panel exposes dopamine, octopamine, serotonin and acetylcholine as **dimensionless 0–100 activity indices**, not measured concentrations. Dopamine responds to prediction error and realized outcome; octopamine reflects volatility/spread arousal; serotonin represents restraint; ACh reflects sensory drive. These are explanatory state variables, not calibrated neurochemical physiology. Cortisol is deliberately not used as a fly stress readout; octopamine is the relevant insect-inspired channel.
 
 The character is a procedural Three.js interpretation of the supplied character sheet: green chitin, faceted magenta eyes, antennae, proboscis, transparent wings, articulated limbs, and gold jewelry. It is fully volumetric and orbitable, not a flat image or an exact production sculpt of the reference.
+
+## The science behind the streamer
+
+The meme is the character; the scientific foundation is connectomics, computational neuroscience and online prediction. These layers have different evidential status.
+
+### Reconstructed anatomy, not a living brain recording
+
+Electron-microscopy connectomics reconstructs neuronal shapes and identifies synaptic contacts. The shipped MaleCNS v1.0 skeletons and compartment geometry come from the official anatomical release. A skeleton describes a neuron's branching shape; a connectome adds directed connections between cells. Neither by itself tells us the voltages, thoughts or hormone concentrations of an animal. See the [official MaleCNS data and methods resources](https://male-cns.janelia.org/download/).
+
+The Phase 1 extractor uses Janelia's official neuPrint API to request contacts among the visible bodies, with synapse counts, pre/postsynaptic coordinates and available neurotransmitter predictions. It records provenance and validates counts before exporting. This export requires authenticated access and is not yet wired into the running circuit. The current ten-channel LIF network is an authored abstraction over authentic morphology, not the complete MaleCNS network. See [the extraction guide and scientific boundaries](docs/CONNECTOME.md).
+
+### From market measurements to spikes
+
+The computational experiment encodes order-book imbalance, observed sixty-second price velocity and spread compression as sensory drive. A leaky integrate-and-fire neuron accumulates that drive while its membrane state relaxes toward rest. Crossing a threshold produces a discrete spike and a refractory interval. Fixed 8.333 ms steps make this model independent of ordinary rendering-rate variation; stale data does not trigger catch-up trades.
+
+This is an engineered encoding, not evidence that a biological fly understands markets. The character's eyes and head face its monitor, but the current engine receives numerical market features rather than reconstructing the animal's retinal processing. The branching lightning illustrates model activity; it is not a measured action potential traveling through each displayed biological cell.
+
+### Learning from delayed outcomes
+
+The learner predicts a future midpoint change from three market features. Once a fresh observation from the same contract arrives approximately sixty seconds later, it calculates `error = observed change - predicted change` and updates each feature weight by a bounded gradient step proportional to that error and feature value. The lesson counter counts completed comparisons, not elapsed time or invented experience. Missing observations and market switches cannot become cross-contract training examples.
+
+Execution and learning are related but separate: a descending model spike gates an eligible ledger fill, while prediction errors update the predictor. Positive realized trade PnL raises the modeled dopamine reward index; losses lower it. That reward currently affects expressive state, not a biologically validated dopamine-dependent synaptic-plasticity rule. There is no claim that this small predictor will become profitable, and spread costs can dominate its results.
+
+### Neuromodulators as an animation interface
+
+Dopamine, octopamine, serotonin and acetylcholine are named biological signaling systems, but their displayed levels here are dimensionless computational indices. Volatility and spread drive the octopamine-inspired arousal signal, sensory pressure drives ACh, and a restraint index drives serotonin. These values modulate head motion, typing, wing flutter and expressive nods. They are not assays or calibrated physiological concentrations.
+
+The proposed conductance-based network, exact contact-localized propagation, and E/I–flux–synchrony stress score belong to subsequent phases. Transmitter identity alone cannot establish receptor-dependent excitation or inhibition. Gamma-band analysis up to 80 Hz also needs a higher internal sampling rate than the current 120 Hz step. Any future stress or overdrive indicator must remain a model readout, not a diagnosis of seizure or tissue damage.
+
+### What would count as stronger evidence?
+
+An authenticated, reproducible connectivity export; a justified sensory-to-descending-neuron subcircuit; parameter and timestep sensitivity tests; comparisons against simple trading baselines on held-out data; and explicit accounting for fees and execution constraints. Anatomical authenticity does not establish functional fidelity or trading skill. The project's purpose is to make those distinctions visible while creating an entertaining, inspectable streamer.
 
 ## History and controls
 

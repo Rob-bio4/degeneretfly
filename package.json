@@ -6,6 +6,7 @@
   "description": "A live bio-cybernetic fruit fly driven by a Male CNS v1.0-inspired LIF sub-circuit and Polymarket telemetry.",
   "license": "MIT",
   "scripts": {
+    "setup:models": "node scripts/setup-models.mjs",
     "dev": "node server.mjs --dev",
     "start": "node server.mjs",
     "build": "tsc --noEmit && vite build",
@@ -14,6 +15,7 @@
     "check": "npm run test && npm run build"
   },
   "dependencies": {
+    "@huggingface/transformers": "3.8.1",
     "kokoro-js": "^1.2.1",
     "three": "^0.180.0"
   },

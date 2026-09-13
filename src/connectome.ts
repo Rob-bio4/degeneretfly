@@ -63,6 +63,8 @@ export class LIFConnectome {
   private readonly pending: PendingImpulse[] = [];
   private sensoryFrame: SensoryFrame | null = null;
   private clockMs = 0;
+  private decisionDrive={buy:false,sell:false};
+  setDecisionDrive(drive:{buy:boolean;sell:boolean}){this.decisionDrive=drive;}
 
   constructor() {
     for (const neuron of NEURONS) {
@@ -157,6 +159,10 @@ export class LIFConnectome {
       case 'ALPN-R': return clamp(12 + negativeImbalance * 30 + Math.max(0, -spreadCompression) * 210, 0, 38);
       case 'OL-L': return clamp(10 + positiveVelocity * 15, 0, 36);
       case 'OL-R': return clamp(10 + negativeVelocity * 15, 0, 36);
+      // Learned/risk policy modulates the descending cells. Execution still
+      // requires an actual LIF threshold crossing and all ledger checks.
+      case 'DNp01': return this.decisionDrive.buy?26:0;
+      case 'DNp02': return this.decisionDrive.sell?26:0;
       default: return 0;
     }
   }

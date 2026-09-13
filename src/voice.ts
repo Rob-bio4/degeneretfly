@@ -1,2 +1,20 @@
-type Engine={generate:(text:string,opts:{voice:string;speed:number})=>Promise<{toBlob:()=>Blob}>};
-export class FlyVoice{enabled=false;private engine:Engine|null=null;private loading=false;private queue:string[]=[];private audio:HTMLAudioElement|null=null;async enable(){this.enabled=true;if(this.engine||this.loading)return;this.loading=true;try{const {KokoroTTS}=await import('kokoro-js');this.engine=await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX',{dtype:'q8',device:'wasm'}) as Engine;this.flush();}catch{this.loading=false;}}mute(){this.enabled=false;this.queue=[];this.audio?.pause();}say(text:string){if(!this.enabled)return;this.queue.push(text);if(this.queue.length>3)this.queue.shift();this.flush();}private async flush(){if(!this.engine||!this.queue.length||this.audio?.paused===false)return;const text=this.queue.shift()!;try{const blob=await this.engine.generate(text,{voice:'am_adam',speed:1.08});const url=URL.createObjectURL(blob.toBlob());this.audio=new Audio(url);this.audio.onended=()=>{URL.revokeObjectURL(url);this.audio=null;this.flush();};await this.audio.play();}catch{this.audio=null;}}}
+export class FlyVoice {
+  enabled=false;speaking=false;onSpeaking:(active:boolean)=>void=()=>{};
+  private stopPlayback:(()=>void)|null=null;private controller:AbortController|null=null;private context:AudioContext|null=null;
+  async enable(){this.enabled=true;this.context??=new AudioContext();await this.context.resume();}
+  mute(){this.enabled=false;this.controller?.abort();this.stopPlayback?.();this.speaking=false;this.onSpeaking(false);}
+  async speak(text:string){
+    if(!this.enabled)throw new Error('Voice is muted');
+    this.controller=new AbortController();
+    const response=await fetch('/api/voice',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.slice(0,700)}),signal:this.controller.signal});
+    if(!response.ok)throw new Error('Kokoro unavailable. Check model status.');
+    const bytes=await response.arrayBuffer();if(!this.enabled)throw new Error('Voice is muted');
+    // Web Audio is unlocked by the enable-button gesture, including in OBS.
+    const buffer=await this.context!.decodeAudioData(bytes);const source=this.context!.createBufferSource();source.buffer=buffer;source.connect(this.context!.destination);
+    await new Promise<void>((resolve,reject)=>{
+      let stopped=false;this.stopPlayback=()=>{stopped=true;source.stop();reject(new Error('Voice is muted'));};
+      source.onended=()=>{this.stopPlayback=null;this.speaking=false;this.onSpeaking(false);if(!stopped)resolve();};
+      this.speaking=true;this.onSpeaking(true);source.start();
+    });
+  }
+}

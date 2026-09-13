@@ -10,8 +10,11 @@ export function levels(input:unknown,desc=false):Level[]{
 }
 const array=(v:unknown):string[]=>{try{const a=typeof v==='string'?JSON.parse(v):v;return Array.isArray(a)?a.map(String):[];}catch{return[];}};
 const get=async(url:string)=>{const r=await fetch(url,{signal:AbortSignal.timeout(14000),cache:'no-store'});if(!r.ok)throw new Error(`Feed ${r.status}`);return r.json();};
+export const MARKET_DWELL_MS=180000;
 export class PolymarketFeed {
   markets:Market[]=[];selectedMarket:Market|null=null;quote:Quote|null=null;tape:Tape[]=[];
+  selectedAt=0;canRotate:()=>boolean=()=>true;
+  get remainingInMarket(){return Math.max(0,MARKET_DWELL_MS-(Date.now()-this.selectedAt));}
   onQuote:((q:Quote)=>void)|null=null;onStatus:((s:string)=>void)|null=null;onTape:(()=>void)|null=null;
   private socket:WebSocket|null=null;private generation=0;private history:{time:number;price:number}[]=[];private heartbeat=0;private timer=0;private rotation=0;private selectedIndex=0;
   async start(){
@@ -38,6 +41,7 @@ export class PolymarketFeed {
     const generation=++this.generation;this.socket?.close();clearTimeout(this.timer);clearInterval(this.heartbeat);
     clearTimeout(this.rotation);
     this.quote=null;this.history=[];this.tape=[];this.selectedMarket=m;this.onStatus?.('Connecting · '+m.question);
+    this.selectedAt=Date.now();
     let lastTape=0;
     const refresh=async()=>{
       if(generation!==this.generation)return;
@@ -65,12 +69,20 @@ export class PolymarketFeed {
     }catch{/* Ignore non-data keepalive messages. */}};
     ws.onclose=()=>{if(generation===this.generation)clearInterval(this.heartbeat);};
     ws.onerror=()=>ws.close();
-    this.rotation=window.setTimeout(()=>this.rotate(),90000);
+    this.rotation=window.setTimeout(()=>void this.rotate(),MARKET_DWELL_MS);
   }
-  private rotate(){
-    if(this.markets.length<2)return;
-    const next=(this.selectedIndex+1)%this.markets.length;const candidate=this.markets[next];
-    if(candidate){this.selectedIndex=next;void this.selectMarket(candidate.id);}
+  private async rotate(){
+    if(!this.canRotate()){this.rotation=window.setTimeout(()=>void this.rotate(),10000);return;}
+    const generation=this.generation;
+    for(let step=1;step<=Math.min(30,this.markets.length);step++){
+      if(generation!==this.generation)return;
+      const next=(this.selectedIndex+step)%this.markets.length,candidate=this.markets[next];if(!candidate)continue;
+      try{const book=await get('/api/book?token_id='+candidate.yesTokenId);if(generation!==this.generation)return;
+        const b=levels(book.bids,true)[0],a=levels(book.asks)[0];
+        if(b&&a&&b.price>.03&&a.price<.97&&a.price>=b.price){this.selectedIndex=next;await this.selectMarket(candidate.id);return;}
+      }catch{/* Continue through available contracts. */}
+    }
+    this.rotation=window.setTimeout(()=>void this.rotate(),30000);
   }
   private addTape(row:Tape){if(!Number.isFinite(row.price)||!Number.isFinite(row.size)||!Number.isFinite(row.timestamp)||this.tape.some(x=>x.id===row.id))return;this.tape.push(row);this.tape.sort((a,b)=>b.timestamp-a.timestamp);this.onTape?.();}
   private accept(book:{bids:unknown;asks:unknown}){
@@ -83,5 +95,5 @@ export class PolymarketFeed {
     const quote:Quote={token:this.selectedMarket!.yesTokenId,bids,asks,history:[...this.history],warm:!!previous,imbalance:(b-a)/(b+a),velocity1m:previous?(mid-previous.price)/previous.price:0,spreadCompression:this.quote?this.quote.spread-spread:0,bid,ask,spread,mid,timestamp:time,isLive:true};
     this.quote=quote;this.onStatus?.('Live · Polymarket');this.onQuote?.(quote);
   }
-  stop(){this.generation++;this.socket?.close();clearTimeout(this.timer);clearInterval(this.heartbeat);}
+  stop(){this.generation++;this.socket?.close();clearTimeout(this.timer);clearTimeout(this.rotation);clearInterval(this.heartbeat);}
 }

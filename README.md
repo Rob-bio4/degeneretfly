@@ -26,13 +26,15 @@ npm run check
 npm start
 ```
 
-`npm run check` runs eight automated tests, TypeScript checking, and the production build. `npm start` serves the generated `dist/` with the same public-data proxy. Default binding is loopback only. Override `PORT` if 4173 is occupied. Do not run development and production servers on the same port.
+`npm run check` runs thirteen automated tests, TypeScript checking, and the production build. `npm start` serves the generated `dist/` with the same public-data proxy. Default binding is loopback only. Override `PORT` if 4173 is occupied. Do not run development and production servers on the same port.
+
+For Kokoro **Adam**, local **Qwen 2.5 0.5B Q4**, and sequential Kick replies, follow [Streamer setup](docs/STREAMER-SETUP.md). Start with `npm run setup:models`, then click **Enable Adam** in the app. For genuine body-to-body synapse extraction through the official API, follow [Phase 1: MaleCNS connectivity](docs/CONNECTOME.md). That optional extraction requires Python and a neuPrint token; ordinary viewing does not.
 
 ## The story
 
 ### 1. He senses the order book
 
-The local server discovers active YES contracts through Polymarket Gamma. It favors recent trading volume, excludes near-resolved prices, and verifies a two-sided CLOB book before selecting a contract. Change the market below the desk.
+The local server discovers active YES contracts through Polymarket Gamma. It favors recent trading volume, excludes near-resolved prices, and verifies a two-sided CLOB book before selecting a contract. The fly automatically rotates through discovered eligible contracts with a three-minute observation dwell, and keeps focus while a position remains open. The monitor shows its current focus; it does not scan the entire exchange simultaneously.
 
 Actual top-five depth imbalance, a full minute of observed midpoint velocity, and changes in spread become effective membrane-driving inputs. There are no price generators. An unavailable or stale feed pauses decisions. A newly selected market must accumulate sixty seconds of observations.
 
@@ -54,7 +56,7 @@ This teaches a small price-response model, not language understanding or guarant
 
 ### 4. A decision must earn its place
 
-A descending spike can request a fill, but the execution checks must also pass: fresh quote, completed warmup, twenty-second cooldown, sufficient cash/inventory, healthy storage, and a learned edge greater than the full spread plus a 0.002 price buffer. Existing positions can also exit on a 5% loss or 4% gain threshold.
+A descending spike can request a fill, but the execution checks must also pass: fresh quote, completed warmup, seven-second cooldown, sufficient cash/inventory, healthy storage, and a learned edge greater than the full spread plus a 0.0005 price buffer. A separate bounded $2 pressure-exploration path is available at most once per minute when bid imbalance exceeds 0.30 and spread is at most 0.015. Existing positions can also exit on a 5% loss, 4% gain, or sixty-second evaluation threshold. Entries stop near the end of a market dwell so outcomes have time to mature. Intent drives the authored descending channels; their threshold crossings gate fills, not the language model.
 
 Buys walk actual ask depth, sells walk actual bid depth. A buy is limited to $8 and fifteen shares, with no borrowing or shorting. Slippage is the depth-weighted fill's deviation from the best executable quote. Cash plus inventory marked at the last observed bid produces equity. Closed-win percentage counts profitable sell fills, not resolved market outcomes. Fees, queue position, settlement, and fill competition are not modeled.
 

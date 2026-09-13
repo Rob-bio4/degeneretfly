@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { makeFly } from './character';
+import { makeFly,type Mood } from './character';
 import { Anatomy } from './anatomy';
 import type { Quote,Tape } from './live-market';
 import type { Fill } from './agent';
@@ -13,7 +13,7 @@ export class Studio {
     this.renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:true});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=T.PCFSoftShadowMap;
     this.renderer.toneMapping=T.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.45;
     this.scene.background=new T.Color(0x14171b);this.scene.fog=new T.Fog(0x14171b,13,27);
-    this.camera.position.set(6.1,4.5,8.9);this.controls=new OrbitControls(this.camera,canvas);this.controls.target.set(0,1.2,0);this.controls.enableDamping=true;this.controls.maxPolarAngle=Math.PI*.49;this.controls.minDistance=4;this.controls.maxDistance=16;
+    this.camera.position.set(5.1,3.8,6.7);this.controls=new OrbitControls(this.camera,canvas);this.controls.target.set(.3,1.45,.25);this.controls.enableDamping=true;this.controls.maxPolarAngle=Math.PI*.49;this.controls.minDistance=4;this.controls.maxDistance=16;
     this.scene.add(new T.HemisphereLight(0xcbe7ff,0x5c4934,2.8));
     const light=(color:number,power:number,pos:number[])=>{const l=new T.SpotLight(color,power,25,Math.PI/4,.5,1.5);l.position.set(pos[0]!,pos[1]!,pos[2]!);l.castShadow=true;l.shadow.mapSize.set(2048,2048);l.shadow.bias=-.00015;this.scene.add(l);return l;};
     light(0xffe1b8,130,[-3,7,4]);light(0x92b6ff,75,[5,5,-3]);light(0xf2a1d0,30,[-5,3,-2]);
@@ -26,9 +26,11 @@ export class Studio {
     for(const x of [-1.65,2.15])for(const z of [-1.02,.42])box(.07,1.26,.07,metal,x,.58,z);
     // Padded operator chair: seat, back, arm rests and a five-star base.
     const chair=new T.MeshStandardMaterial({color:0x242a35,roughness:.48,metalness:.25});
-    box(.92,.16,.82,chair,-.92,.92,.55);box(.82,1.05,.16,chair,-.92,1.43,.86);
-    for(const side of [-1,1]){box(.08,.36,.08,metal,-.92+side*.46,1.13,.55);box(.38,.07,.08,chair,-.92+side*.27,1.32,.55);}
-    box(.10,.78,.10,metal,-.92,.45,.55);for(let i=0;i<5;i++){const a=i*Math.PI*2/5;box(.06,.06,.48,metal,-.92+Math.sin(a)*.22,.08,.55+Math.cos(a)*.22);}
+    box(.99,.14,.82,chair,.65,.82,1.04);box(.86,1.0,.14,chair,.65,1.38,1.48);
+    for(const side of [-1,1]){box(.06,.39,.06,metal,.65+side*.50,1.02,1.07);box(.12,.07,.51,chair,.65+side*.50,1.22,1.07);}
+    box(.10,.64,.10,metal,.65,.43,1.04);
+    for(let i=0;i<5;i++){const a=i*Math.PI*2/5;const spoke=box(.055,.055,.55,metal,.65+Math.sin(a)*.24,.12,1.04+Math.cos(a)*.24);spoke.rotation.y=a;
+      const wheel=new T.Mesh(new T.CylinderGeometry(.075,.075,.06,14),metal);wheel.rotation.z=Math.PI/2;wheel.position.set(.65+Math.sin(a)*.48,.075,1.04+Math.cos(a)*.48);this.scene.add(wheel);}
     // A monitor with a real, continuously refreshed data texture.
     box(2.40,1.48,.10,metal,.83,2.25,-.67);box(.12,.42,.10,metal,.83,1.57,-.69);box(.70,.055,.35,metal,.83,1.39,-.66);
     const offscreen=document.createElement('canvas');offscreen.width=1280;offscreen.height=768;this.ctx=offscreen.getContext('2d')!;
@@ -47,8 +49,8 @@ export class Studio {
     box(.035,.85,.035,metal,-1.55,1.78,-.89);box(.42,.04,.18,metal,-1.38,2.22,-.89);
     const deskLight=new T.PointLight(0xffcc80,3,2);deskLight.position.set(-1.4,2.15,-.82);this.scene.add(deskLight);
     // Character is a fully volumetric mesh with jewelry and translucent wings.
-    this.fly.group.position.set(-1.08,.02,1.1);this.fly.group.rotation.y=2.32;this.fly.group.scale.setScalar(.92);this.scene.add(this.fly.group);
-    this.glow.position.set(-1,2.2,1.35);this.scene.add(this.glow);
+    this.fly.group.position.set(.65,.25,1.08);this.fly.group.rotation.y=Math.PI;this.fly.group.scale.setScalar(.92);this.scene.add(this.fly.group);
+    this.glow.position.set(.65,2.3,1.0);this.scene.add(this.glow);
     this.brainRenderer=new T.WebGLRenderer({canvas:brainCanvas,antialias:true,alpha:true});this.brainRenderer.setPixelRatio(Math.min(devicePixelRatio,2));
     this.brainCamera.position.set(0,.1,6.1);this.brainScene.add(this.anatomy.group);this.anatomy.group.position.y=.08;
     const brainControls=new OrbitControls(this.brainCamera,brainCanvas);brainControls.enableZoom=false;brainControls.enablePan=false;brainControls.autoRotate=false;
@@ -56,9 +58,9 @@ export class Studio {
     this.resize();this.draw(null,[],[],'Connecting to Polymarket');
   }
   private resize(){for(const [canvas,renderer,camera] of [[this.canvas,this.renderer,this.camera],[this.brainCanvas,this.brainRenderer,this.brainCamera]] as const){const w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)continue;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}}
-  render(dt:number){this.clock+=dt;this.controls.update();this.fly.group.position.y=.02+Math.sin(this.clock*1.7)*.012;this.fly.group.rotation.z=Math.sin(this.clock*.55)*.012;this.fly.group.rotation.x=Math.sin(this.clock*.42)*.008;this.kick=Math.max(0,this.kick-dt*2);this.fly.head.rotation.z=Math.sin(this.clock*.7)*.025+this.kick*.04;this.fly.head.rotation.y=Math.sin(this.clock*.9)*.035;this.fly.group.traverse(o=>{if(o.name==='wing')o.rotation.x=Math.sin(this.clock*18)*.055;});this.glow.intensity=this.kick*3;this.anatomy.update(this.clock);this.renderer.render(this.scene,this.camera);this.brainRenderer.render(this.brainScene,this.brainCamera);}
+  render(dt:number,mood:Mood){this.clock+=dt;this.controls.update();this.fly.animate(this.clock,dt,mood);this.kick=Math.max(0,this.kick-dt*2);this.glow.intensity=this.kick*3;this.anatomy.update(this.clock);this.renderer.render(this.scene,this.camera);this.brainRenderer.render(this.brainScene,this.brainCamera);}
   spike(motor:boolean){this.anatomy.spike(this.clock,motor);if(motor)this.kick=1;}
-  home(){this.camera.position.set(6.1,4.5,8.9);this.controls.target.set(0,1.2,0);}
+  home(){this.camera.position.set(5.1,3.8,6.7);this.controls.target.set(.3,1.45,.25);}
   draw(q:Quote|null,tape:Tape[],fills:Fill[],question:string){
     const c=this.ctx;c.fillStyle='#0b101a';c.fillRect(0,0,1280,768);
     c.fillStyle='#f0f2ff';c.font='bold 30px sans-serif';c.fillText('Polymarket',38,54);c.font='15px monospace';c.fillStyle=q&&Date.now()-q.timestamp<8000?'#b5f3b2':'#f0cb81';c.fillText(q&&Date.now()-q.timestamp<8000?'● LIVE ORDER FLOW':'CONNECTING',975,49);

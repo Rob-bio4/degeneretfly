@@ -2,6 +2,8 @@
 
 A little instinct. A lot of market.
 
+you can see him live on kick https://kick.com/degenaratefly
+
 **Built by Robin-kevin Vettik.** Software copyright and MIT license holder: **Robillionair OÜ**.
 
 A green, gold-wearing 3D fruit fly watches a live Polymarket workstation. Beside him, reconstructed MaleCNS anatomy carries branching light pulses from a leaky integrate-and-fire circuit. Order flow becomes sensory input; predictions become lessons; accepted decisions are saved in his shared local $100 ledger.
